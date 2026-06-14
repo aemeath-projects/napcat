@@ -1,6 +1,6 @@
-# @aemeath-projects/napcat
+# Aemeath NapCat SDK
 
-NapCat / OneBot 11 TypeScript SDK. 提供对 NapCat 的完整 TypeScript 封装，支持四种连接方式，支持 tree-shaking。
+NapCat / OneBot 11 TypeScript SDK. 提供对 NapCat 的完整 TypeScript 封装，支持四种连接方式，支持 tree-shaking
 
 ## 安装
 

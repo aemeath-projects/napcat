@@ -1,6 +1,5 @@
-import type { TypedEventEmitter } from '../core/emitter.js'
-import type { ApiResponse } from '../types/common.js'
-import type { TransportEventMap } from '../types/events.js'
+import type { TypedEventEmitter } from '../core'
+import type { ApiResponse, TransportEventMap } from '../types'
 
 /** Transport 连接状态。 */
 export type TransportState = 'disconnected' | 'connecting' | 'connected'

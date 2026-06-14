@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
-import { SseTransport } from '../../src/transport/sse.js'
+import { SseTransport } from '../../src/transport'
 
 import { MockNapCatSseServer } from './helpers/mock-sse-server.js'
 
@@ -76,5 +76,21 @@ describe('SseTransport SSE 传输', () => {
     // 等待重连成功
     await reconnectPromise
     expect(transport.state).toBe('connected')
+  })
+
+  it('call() 配置 token 时附加 Authorization header', async () => {
+    server.onAction('send_msg', (body) => ({ message_id: Number(body.user_id ?? 0) }))
+    transport = new SseTransport({ baseUrl: server.baseUrl, token: 'sse-token' })
+    await transport.connect()
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+
+    const resp = await transport.call('send_msg', { user_id: 100 })
+    expect(resp.status).toBe('ok')
+  })
+
+  it('call() 请求不存在的服务器时抛出 TransportError', async () => {
+    transport = new SseTransport({ baseUrl: 'http://127.0.0.1:19999' })
+    // 在不建立 SSE 连接的情况下直接 call
+    await expect(transport.call('any_action', {})).rejects.toThrow('HTTP 请求失败')
   })
 })

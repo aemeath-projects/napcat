@@ -1,4 +1,4 @@
-import type { Result } from '../core/result.js'
+import type { Result } from '../core'
 import type {
   GroupInfo,
   GroupInfoEx,
@@ -11,7 +11,7 @@ import type {
   GroupShutMember,
   GroupSystemMsg,
   IgnoredRequest,
-} from '../types/api.js'
+} from '../types'
 
 import { BaseApi } from './base.js'
 

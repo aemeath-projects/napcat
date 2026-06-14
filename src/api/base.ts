@@ -1,6 +1,5 @@
-import type { NapCatClient } from '../core/client.js'
-import type { Result } from '../core/result.js'
-import type { ApiResponse } from '../types/common.js'
+import type { NapCatClient, Result } from '../core'
+import type { ApiResponse } from '../types'
 
 /** 所有 API 模块的基类。 */
 export abstract class BaseApi {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { Seg, extractPlaintext } from '../../../src/utils/segment.js'
+import { Seg, extractPlaintext } from '../../../src/utils'
 
 describe('Seg 工厂函数', () => {
   it('Seg.text 创建文本段', () => {
@@ -64,6 +64,14 @@ describe('Seg 工厂函数', () => {
   it('Seg.node 创建节点段', () => {
     const seg = Seg.node([], 123, 'user')
     expect(seg.type).toBe('node')
+    expect(seg.data.user_id).toBe(123)
+    expect(seg.data.nickname).toBe('user')
+  })
+  it('Seg.node 不传可选参数时填充 null', () => {
+    const seg = Seg.node([])
+    expect(seg.type).toBe('node')
+    expect(seg.data.user_id).toBeNull()
+    expect(seg.data.nickname).toBeNull()
   })
   it('Seg.music 创建音乐段', () => {
     const seg = Seg.music('qq', '12345')
@@ -78,6 +86,49 @@ describe('Seg 工厂函数', () => {
     const seg = Seg.location(31.0, 121.0, { title: 'Shanghai' })
     expect(seg.type).toBe('location')
     expect(seg.data.title).toBe('Shanghai')
+  })
+  it('Seg.mface 创建商城表情段', () => {
+    const seg = Seg.mface({ emoji_id: 'abc', emoji_package_id: '1' })
+    expect(seg.type).toBe('mface')
+    expect(seg.data.emoji_id).toBe('abc')
+  })
+  it('Seg.file 创建文件消息段', () => {
+    const seg = Seg.file('file.pdf', { name: 'doc.pdf' })
+    expect(seg.type).toBe('file')
+    expect(seg.data.file).toBe('file.pdf')
+    expect(seg.data.name).toBe('doc.pdf')
+  })
+  it('Seg.customMusic 创建自定义音乐段', () => {
+    const seg = Seg.customMusic(
+      'https://music.example.com',
+      'https://audio.example.com',
+      'Song Title',
+      'Singer',
+      'https://img.example.com',
+    )
+    expect(seg.type).toBe('music')
+    expect(seg.data.type).toBe('custom')
+    expect(seg.data.url).toBe('https://music.example.com')
+    expect(seg.data.content).toBe('https://audio.example.com')
+    expect(seg.data.title).toBe('Song Title')
+    expect(seg.data.singer).toBe('Singer')
+  })
+  it('Seg.contact 创建联系人名片段', () => {
+    const seg = Seg.contact('qq', '123456')
+    expect(seg.type).toBe('contact')
+    expect(seg.data.type).toBe('qq')
+    expect(seg.data.id).toBe('123456')
+  })
+  it('Seg.share 创建链接分享段', () => {
+    const seg = Seg.share('https://example.com', 'Example', {
+      content: 'Description',
+      image: 'https://img.example.com',
+    })
+    expect(seg.type).toBe('share')
+    expect(seg.data.url).toBe('https://example.com')
+    expect(seg.data.title).toBe('Example')
+    expect(seg.data.content).toBe('Description')
+    expect(seg.data.image).toBe('https://img.example.com')
   })
 })
 

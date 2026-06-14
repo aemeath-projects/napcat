@@ -1,4 +1,4 @@
-import type { Result } from '../core/result.js'
+import type { Result } from '../core'
 import type {
   MessageDetail,
   ForwardMessage,
@@ -6,8 +6,8 @@ import type {
   SendMsgParams,
   RecentContact,
   InlineKeyboardClick,
-} from '../types/api.js'
-import type { MessageSegment } from '../types/segments.js'
+  MessageSegment,
+} from '../types'
 
 import { BaseApi } from './base.js'
 

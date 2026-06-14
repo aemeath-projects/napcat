@@ -4,10 +4,8 @@ import { createServer, type IncomingMessage } from 'node:http'
 
 import { WebSocketServer, WebSocket, type RawData } from 'ws'
 
-import { TypedEventEmitter } from '../core/emitter.js'
-import { TransportError, TimeoutError } from '../core/errors.js'
-import type { ApiResponse } from '../types/common.js'
-import type { TransportEventMap } from '../types/events.js'
+import { TypedEventEmitter, TransportError, TimeoutError } from '../core'
+import type { ApiResponse, TransportEventMap } from '../types'
 
 import type { ITransport, TransportState } from './interface.js'
 import { handleIncomingMessage, type PendingCall } from './message.js'

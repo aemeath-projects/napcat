@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-import { ReconnectPolicy } from '../../../src/transport/reconnect.js'
+import { ReconnectPolicy } from '../../../src/transport'
 
 describe('重连策略', () => {
   beforeEach(() => {

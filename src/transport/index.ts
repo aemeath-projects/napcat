@@ -1,12 +1,11 @@
 export type { ITransport, TransportState } from './interface.js'
-export { ReconnectPolicy } from './reconnect.js'
-export type { ReconnectOptions } from './reconnect.js'
 export type { PendingCall } from './message.js'
-export { WebSocketTransport } from './ws.js'
-export type { WebSocketTransportOptions, WsTransportEventMap } from './ws.js'
-export { ReverseWebSocketTransport } from './reverse-ws.js'
-export type { ReverseWebSocketTransportOptions } from './reverse-ws.js'
-export { HttpTransport } from './http.js'
-export type { HttpTransportOptions, HttpEventServerOptions } from './http.js'
-export { SseTransport } from './sse.js'
-export type { SseTransportOptions, SseTransportEventMap } from './sse.js'
+export { ReconnectPolicy, type ReconnectOptions } from './reconnect.js'
+export {
+  WebSocketTransport,
+  type WebSocketTransportOptions,
+  type WsTransportEventMap,
+} from './ws.js'
+export { ReverseWebSocketTransport, type ReverseWebSocketTransportOptions } from './reverse-ws.js'
+export { HttpTransport, type HttpTransportOptions, type HttpEventServerOptions } from './http.js'
+export { SseTransport, type SseTransportOptions, type SseTransportEventMap } from './sse.js'

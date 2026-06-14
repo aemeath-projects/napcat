@@ -1,4 +1,4 @@
-import type { Result } from '../core/result.js'
+import type { Result } from '../core'
 import type {
   LoginInfo,
   VersionInfo,
@@ -13,7 +13,7 @@ import type {
   Credentials,
   ClientKey,
   UrlSafety,
-} from '../types/api.js'
+} from '../types'
 
 import { BaseApi } from './base.js'
 

@@ -1,8 +1,7 @@
-import { EventEmitter } from 'node:events'
+import type { EventEmitter } from 'node:events'
 
-import type { ITransport } from '../transport/interface.js'
-import type { ApiResponse, OneBotEvent } from '../types/common.js'
-import type { ClientEventMap } from '../types/events.js'
+import type { ITransport } from '../transport'
+import type { ApiResponse, OneBotEvent, ClientEventMap } from '../types'
 
 import { TypedEventEmitter } from './emitter.js'
 
@@ -55,13 +54,13 @@ export class NapCatClient extends TypedEventEmitter<ClientEventMap> {
           (raw.meta_event_type as string | undefined)
 
         if (subKey) {
-          // 动态事件分发无法通过静态类型检查，借助父类原型方法绕过类型约束
-          EventEmitter.prototype.emit.call(this, `${raw.post_type}.${subKey}`, raw)
+          // 动态事件名无法通过 TypedEventEmitter 的静态类型检查，通过父类原型绕过类型约束
+          ;(this as unknown as EventEmitter).emit(`${raw.post_type}.${subKey}`, raw)
         }
       }
 
       // 始终触发顶层事件（message / notice / request / meta_event / message_sent）
-      EventEmitter.prototype.emit.call(this, raw.post_type, raw)
+      ;(this as unknown as EventEmitter).emit(raw.post_type, raw)
     })
   }
 }

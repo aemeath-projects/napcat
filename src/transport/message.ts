@@ -1,4 +1,4 @@
-import type { ApiResponse, OneBotEvent } from '../types/common.js'
+import type { ApiResponse, OneBotEvent } from '../types'
 
 /** 等待中的 API 调用信息，供 Transport 实现复用。 */
 export interface PendingCall {

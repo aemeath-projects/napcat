@@ -1,10 +1,8 @@
 /** HTTP Transport 实现：API 调用走 HTTP POST，事件接收走内置 HTTP server。 */
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
 
-import { TypedEventEmitter } from '../core/emitter.js'
-import { ConnectionError, TransportError } from '../core/errors.js'
-import type { ApiResponse, OneBotEvent } from '../types/common.js'
-import type { TransportEventMap } from '../types/events.js'
+import { TypedEventEmitter, ConnectionError, TransportError } from '../core'
+import type { ApiResponse, OneBotEvent, TransportEventMap } from '../types'
 
 import type { ITransport, TransportState } from './interface.js'
 
@@ -171,8 +169,9 @@ export class HttpTransport extends TypedEventEmitter<TransportEventMap> implemen
 
   /** 处理来自 NapCat 的事件上报请求。 */
   private _handleEventRequest(req: IncomingMessage, res: ServerResponse): void {
-    // 仅处理配置路径
-    if (req.url !== this._eventPath) {
+    // 仅处理配置路径（去除 query string 后比较）
+    const urlWithoutQuery = req.url?.split('?')[0] ?? ''
+    if (urlWithoutQuery !== this._eventPath) {
       res.writeHead(404)
       res.end()
       return

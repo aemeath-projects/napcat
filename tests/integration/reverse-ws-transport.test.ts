@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest'
 
-import { TimeoutError } from '../../src/core/errors.js'
-import { ReverseWebSocketTransport } from '../../src/transport/reverse-ws.js'
+import { TimeoutError } from '../../src/core'
+import { ReverseWebSocketTransport } from '../../src/transport'
 
 import { MockNapCatWsClient } from './helpers/mock-ws-client.js'
 
@@ -54,6 +54,34 @@ describe('ReverseWebSocketTransport 反向 WebSocket 传输', () => {
     await connectPromise
 
     expect(transport.state).toBe('connected')
+  })
+
+  it('接受通过 Bearer header 传递 token 的连接', async () => {
+    transport = new ReverseWebSocketTransport({
+      host: '127.0.0.1',
+      port: 0,
+      path: '/ws',
+      token: 'bearer-token',
+    })
+    await transport.connect()
+
+    // 使用原生 WebSocket 发送 Bearer header 进行鉴权
+    const { WebSocket: RawWs } = await import('ws')
+    const connectPromise = new Promise<void>((resolve) => transport.once('connect', resolve))
+    const ws = new RawWs(transport.url, {
+      headers: { Authorization: 'Bearer bearer-token' },
+    })
+
+    await new Promise<void>((resolve, reject) => {
+      ws.on('open', resolve)
+      ws.on('error', reject)
+      const timeout = setTimeout(() => reject(new Error('连接超时')), 2000)
+      ws.on('open', () => clearTimeout(timeout))
+    })
+
+    await connectPromise
+    expect(transport.state).toBe('connected')
+    ws.close()
   })
 
   it('maxConnections=1 时拒绝第二个连接（关闭码 4002）', async () => {

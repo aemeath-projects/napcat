@@ -7,7 +7,7 @@ import {
   isNoticeEvent,
   isRequestEvent,
   isMetaEvent,
-} from '../../../src/utils/guards.js'
+} from '../../../src/utils'
 
 describe('事件类型守卫', () => {
   it('isGroupMessage 识别群消息事件', () => {

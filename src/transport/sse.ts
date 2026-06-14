@@ -1,12 +1,9 @@
 /** SSE Transport 实现：事件接收走 GET /_events SSE 连接，API 调用走 HTTP POST。 */
-import { TypedEventEmitter } from '../core/emitter.js'
-import { TransportError } from '../core/errors.js'
-import type { ApiResponse, OneBotEvent } from '../types/common.js'
-import type { TransportEventMap } from '../types/events.js'
+import { TypedEventEmitter, TransportError } from '../core'
+import type { ApiResponse, OneBotEvent, TransportEventMap } from '../types'
 
 import type { ITransport, TransportState } from './interface.js'
-import { ReconnectPolicy } from './reconnect.js'
-import type { ReconnectOptions } from './reconnect.js'
+import { ReconnectPolicy, type ReconnectOptions } from './reconnect.js'
 
 /** SseTransport 扩展事件映射，增加 reconnecting 事件。 */
 export interface SseTransportEventMap extends TransportEventMap {

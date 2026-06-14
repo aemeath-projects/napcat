@@ -24,7 +24,7 @@ import type {
   MarkdownSegment,
   ShareSegment,
   LocationSegment,
-} from '../types/index.js'
+} from '../types'
 
 /** 消息段构建工厂。每个方法返回对应类型的消息段对象。 */
 export const Seg = {

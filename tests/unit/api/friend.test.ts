@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 
-import { FriendApi } from '../../../src/api/friend.js'
-import type { NapCatClient } from '../../../src/core/client.js'
+import { FriendApi } from '../../../src/api'
+import type { NapCatClient } from '../../../src/core'
 
 function mockClient(data: unknown = null) {
   return {

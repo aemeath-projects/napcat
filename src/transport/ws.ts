@@ -3,15 +3,12 @@ import { randomUUID } from 'node:crypto'
 
 import { WebSocket } from 'ws'
 
-import { TypedEventEmitter } from '../core/emitter.js'
-import { TransportError, TimeoutError } from '../core/errors.js'
-import type { ApiResponse } from '../types/common.js'
-import type { TransportEventMap } from '../types/events.js'
+import { TypedEventEmitter, TransportError, TimeoutError } from '../core'
+import type { ApiResponse, TransportEventMap } from '../types'
 
 import type { ITransport, TransportState } from './interface.js'
 import { handleIncomingMessage, type PendingCall } from './message.js'
-import { ReconnectPolicy } from './reconnect.js'
-import type { ReconnectOptions } from './reconnect.js'
+import { ReconnectPolicy, type ReconnectOptions } from './reconnect.js'
 
 /** WebSocketTransport 扩展事件映射，增加 reconnecting 事件。 */
 export interface WsTransportEventMap extends TransportEventMap {
@@ -43,7 +40,7 @@ export class WebSocketTransport
   private _ws: WebSocket | null = null
   private _state: TransportState = 'disconnected'
   private _intentionalClose = false
-  private _reconnectPolicy: ReconnectPolicy | null = null
+  private readonly _reconnectPolicy: ReconnectPolicy | null = null
   private readonly _pending = new Map<string, PendingCall>()
 
   constructor(opts: WebSocketTransportOptions) {

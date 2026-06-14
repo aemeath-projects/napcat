@@ -1,10 +1,13 @@
 {
   "name": "@aemeath-projects/napcat",
   "version": "0.1.0",
-  "description": "NapCat / OneBot 11 TypeScript SDK",
+  "description": "Aemeath NapCat SDK",
   "type": "module",
   "main": "./dist/main.js",
   "types": "./dist/main.d.ts",
+  "files": [
+    "dist"
+  ],
   "sideEffects": false,
   "engines": {
     "node": ">=22.12.0"
@@ -28,7 +31,7 @@
     "bump:major": "commit-and-tag-version --release-as major",
     "changelog": "commit-and-tag-version --skip.bump --skip.commit --skip.tag",
     "commit": "cz",
-    "prepublishOnly": "pnpm run build",
+    "prepublishOnly": "pnpm lint && pnpm run test && pnpm run build",
     "prepare": "husky"
   },
   "keywords": [
@@ -40,6 +43,14 @@
   ],
   "author": "Aemeath Projects",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aemeath-projects/napcat.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aemeath-projects/napcat/issues"
+  },
+  "homepage": "https://aemeath.dev",
   "config": {
     "commitizen": {
       "path": "cz-conventional-changelog"

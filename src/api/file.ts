@@ -1,5 +1,5 @@
-import type { Result } from '../core/result.js'
-import type { FileSystemInfo, FileList, PrivateFileUrl } from '../types/api.js'
+import type { Result } from '../core'
+import type { FileSystemInfo, FileList, PrivateFileUrl } from '../types'
 
 import { BaseApi } from './base.js'
 

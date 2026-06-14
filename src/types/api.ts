@@ -227,11 +227,22 @@ export interface GroupShutMember {
   [key: string]: unknown
 }
 
-/** 群系统消息。 */
-export type GroupSystemMsg = Record<string, unknown>
+/** 群系统消息。OneBot 11 标准响应，包含被邀请和加群请求列表。 */
+export interface GroupSystemMsg {
+  /** 被邀请入群请求列表 */
+  invited_requests?: unknown[]
+  /** 加群请求列表 */
+  join_requests?: unknown[]
+  [key: string]: unknown
+}
 
-/** 被忽略的请求。 */
-export type IgnoredRequest = Record<string, unknown>
+/** 被忽略的请求条目，具体字段由 NapCat/OneBot 实现定义。 */
+export interface IgnoredRequest {
+  request_id?: number
+  group_id?: number
+  user_id?: number
+  [key: string]: unknown
+}
 
 /** 最近联系人。 */
 export interface RecentContact {
@@ -314,7 +325,7 @@ export interface UrlSafety {
   [key: string]: unknown
 }
 
-/** 收藏项。 */
+/** 收藏项，具体字段由 NapCat 实现定义，无固定结构。 */
 export type CollectionItem = Record<string, unknown>
 
 /** 收藏创建参数。 */
@@ -330,5 +341,5 @@ export interface CustomFaceParams {
   [key: string]: unknown
 }
 
-/** MiniApp 参数。 */
+/** MiniApp 参数。不同小程序使用不同参数集合，无固定结构。 */
 export type MiniAppParams = Record<string, unknown>

@@ -6,7 +6,7 @@ import {
   TransportError,
   TimeoutError,
   AuthenticationError,
-} from '../../../src/core/errors.js'
+} from '../../../src/core'
 
 describe('错误层级', () => {
   it('NapCatError 正确设置 name 为类名', () => {

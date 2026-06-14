@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-import { NapCatClient } from '../../src/core/client.js'
-import { WebSocketTransport } from '../../src/transport/ws.js'
+import { NapCatClient } from '../../src/core'
+import { WebSocketTransport } from '../../src/transport'
 
 import { MockNapCatWsServer } from './helpers/mock-ws-server.js'
 
-describe('NapCatClient 客户端', () => {
+describe('NapCat 客户端', () => {
   let server: MockNapCatWsServer
   let transport: WebSocketTransport
   let client: NapCatClient

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 
-import { GroupApi } from '../../../src/api/group.js'
-import type { NapCatClient } from '../../../src/core/client.js'
+import { GroupApi } from '../../../src/api'
+import type { NapCatClient } from '../../../src/core'
 
 function mockClient(data: unknown = null) {
   return {

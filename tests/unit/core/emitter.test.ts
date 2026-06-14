@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 
-import { TypedEventEmitter } from '../../../src/core/emitter.js'
+import { TypedEventEmitter } from '../../../src/core'
 
 interface TestEvents {
   data: (value: string) => void

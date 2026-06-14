@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 
-import { ExtensionApi } from '../../../src/api/extension.js'
-import type { NapCatClient } from '../../../src/core/client.js'
+import { ExtensionApi } from '../../../src/api'
+import type { NapCatClient } from '../../../src/core'
 
 function mockClient(data: unknown = null) {
   return {
@@ -145,6 +145,12 @@ describe('拓展 API', () => {
       count: 10,
     })
   })
+  it('fetchCustomFace 无参数时使用空对象', async () => {
+    const client = mockClient({})
+    const api = new ExtensionApi(client)
+    await api.fetchCustomFace()
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('fetch_custom_face', {})
+  })
   it('markAllAsRead 全部标记已读', async () => {
     const client = mockClient()
     const api = new ExtensionApi(client)
@@ -162,5 +168,14 @@ describe('拓展 API', () => {
         message_id: 'msg_001',
       },
     )
+  })
+  it('getMiniAppArk 获取小程序 Ark 签名', async () => {
+    const client = mockClient({ data: 'ark_signature' })
+    const api = new ExtensionApi(client)
+    const result = await api.getMiniAppArk({ app_id: 'mini_001' })
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('get_mini_app_ark', {
+      app_id: 'mini_001',
+    })
+    expect(result.ok).toBe(true)
   })
 })

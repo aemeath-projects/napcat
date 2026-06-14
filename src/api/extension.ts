@@ -1,4 +1,4 @@
-import type { Result } from '../core/result.js'
+import type { Result } from '../core'
 import type {
   AiCharacter,
   RkeyInfo,
@@ -7,7 +7,7 @@ import type {
   CollectionItem,
   CreateCollectionParams,
   CustomFaceParams,
-} from '../types/api.js'
+} from '../types'
 
 import { BaseApi } from './base.js'
 

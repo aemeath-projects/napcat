@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
-import { ConnectionError } from '../../src/core/errors.js'
-import { HttpTransport } from '../../src/transport/http.js'
+import { ConnectionError } from '../../src/core'
+import { HttpTransport } from '../../src/transport'
 
 import { MockNapCatHttpServer } from './helpers/mock-http-server.js'
 
@@ -111,5 +111,105 @@ describe('HttpTransport HTTP 传输', () => {
     await transport.connect()
     await transport.disconnect()
     expect(transport.state).toBe('disconnected')
+  })
+
+  it('事件请求发送到错误路径时返回 404', async () => {
+    napcat.onAction('get_login_info', () => ({
+      status: 'ok',
+      retcode: 0,
+      data: {},
+    }))
+    transport = new HttpTransport({
+      apiBaseUrl: napcat.baseUrl,
+      eventServer: { host: '127.0.0.1', port: 0, path: '/onebot/event' },
+    })
+    await transport.connect()
+
+    const eventServerUrl = `http://127.0.0.1:${transport.eventServerPort}/wrong-path`
+    const resp = await fetch(eventServerUrl, { method: 'POST' })
+    expect(resp.status).toBe(404)
+  })
+
+  it('Token 鉴权失败时事件请求返回 401', async () => {
+    napcat.onAction('get_login_info', () => ({
+      status: 'ok',
+      retcode: 0,
+      data: {},
+    }))
+    transport = new HttpTransport({
+      apiBaseUrl: napcat.baseUrl,
+      token: 'secret',
+      eventServer: { host: '127.0.0.1', port: 0, path: '/onebot/event' },
+    })
+    await transport.connect()
+
+    const eventServerUrl = `http://127.0.0.1:${transport.eventServerPort}/onebot/event`
+    const resp = await fetch(eventServerUrl, { method: 'POST' })
+    expect(resp.status).toBe(401)
+  })
+
+  it('通过 Bearer header 传递 token 的事件请求鉴权成功', async () => {
+    napcat.onAction('get_login_info', () => ({
+      status: 'ok',
+      retcode: 0,
+      data: {},
+    }))
+    transport = new HttpTransport({
+      apiBaseUrl: napcat.baseUrl,
+      token: 'secret',
+      eventServer: { host: '127.0.0.1', port: 0, path: '/onebot/event' },
+    })
+    await transport.connect()
+
+    // 通过 Bearer header 鉴权
+    const eventServerUrl = `http://127.0.0.1:${transport.eventServerPort}/onebot/event`
+    const eventPromise = new Promise<unknown>((resolve) => transport.once('event', resolve))
+    await fetch(eventServerUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer secret',
+      },
+      body: JSON.stringify({
+        post_type: 'meta_event',
+        meta_event_type: 'heartbeat',
+        time: Date.now(),
+        self_id: 0,
+      }),
+    })
+
+    const event = await eventPromise
+    expect((event as Record<string, unknown>).post_type).toBe('meta_event')
+  })
+
+  it('通过 query string access_token 传递 token 的事件请求鉴权成功', async () => {
+    napcat.onAction('get_login_info', () => ({
+      status: 'ok',
+      retcode: 0,
+      data: {},
+    }))
+    transport = new HttpTransport({
+      apiBaseUrl: napcat.baseUrl,
+      token: 'secret',
+      eventServer: { host: '127.0.0.1', port: 0, path: '/onebot/event' },
+    })
+    await transport.connect()
+
+    // 通过 query string 鉴权
+    const eventServerUrl = `http://127.0.0.1:${transport.eventServerPort}/onebot/event?access_token=secret`
+    const eventPromise = new Promise<unknown>((resolve) => transport.once('event', resolve))
+    await fetch(eventServerUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        post_type: 'meta_event',
+        meta_event_type: 'heartbeat',
+        time: Date.now(),
+        self_id: 0,
+      }),
+    })
+
+    const event = await eventPromise
+    expect((event as Record<string, unknown>).post_type).toBe('meta_event')
   })
 })

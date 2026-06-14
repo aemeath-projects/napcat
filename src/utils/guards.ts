@@ -10,7 +10,7 @@ import type {
   NoticeEvent,
   RequestEvent,
   MetaEvent,
-} from '../types/index.js'
+} from '../types'
 
 /** 判断事件是否为群消息事件。 */
 export function isGroupMessage(event: OneBotEvent): event is GroupMessageEvent {

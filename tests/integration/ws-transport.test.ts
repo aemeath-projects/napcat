@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
-import { TimeoutError } from '../../src/core/errors.js'
-import { WebSocketTransport } from '../../src/transport/ws.js'
+import { TimeoutError } from '../../src/core'
+import { WebSocketTransport } from '../../src/transport'
 
 import { MockNapCatWsServer } from './helpers/mock-ws-server.js'
 
@@ -98,5 +98,47 @@ describe('WebSocketTransport WebSocket 传输', () => {
     // 等待实际重连完成
     await new Promise<void>((resolve) => transport.once('connect', resolve))
     expect(transport.state).toBe('connected')
+  })
+
+  it('call() 在未连接时抛出 TransportError', async () => {
+    transport = new WebSocketTransport({ url: server.url })
+    await expect(transport.call('get_login_info', {})).rejects.toThrow('无法调用')
+  })
+
+  it('达到最大重试次数后停止重连', async () => {
+    transport = new WebSocketTransport({
+      url: server.url,
+      reconnect: { initialDelay: 50, maxDelay: 100, jitter: 0, maxRetries: 1 },
+    })
+    await transport.connect()
+
+    // 收集重连事件
+    const attempts: number[] = []
+    transport.on('reconnecting', (attempt, _delay) => {
+      attempts.push(attempt)
+    })
+
+    server.simulateDisconnect()
+
+    // 等待 connect 事件（第一次重连成功）
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+
+    // 第二次断开
+    server.simulateDisconnect()
+
+    // 等待第二次重连
+    try {
+      await new Promise<void>((resolve) => transport.once('connect', resolve))
+    } catch {
+      // 可能已经无法重连
+    }
+
+    // 第三次断开 — 此时不应再重连
+    const closePromise = new Promise<void>((resolve) => transport.once('close', resolve))
+    server.simulateDisconnect()
+
+    // 等待 close，验证最终停止
+    await closePromise
+    expect(transport.state).toBe('disconnected')
   })
 })

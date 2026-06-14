@@ -1,29 +1,31 @@
-/** NapCat / OneBot 11 TypeScript SDK — @aemeath-projects/napcat */
+/** Aemeath NapCat SDK */
 
 // 核心
-export { NapCatClient } from './core/client.js'
-export { TypedEventEmitter } from './core/emitter.js'
 export {
+  NapCatClient,
+  TypedEventEmitter,
   NapCatError,
   ConnectionError,
   TransportError,
   TimeoutError,
   AuthenticationError,
-} from './core/errors.js'
-export type { Result } from './core/result.js'
+  type Result,
+} from './core'
 
 // 传输层
-export { WebSocketTransport } from './transport/ws.js'
-export { ReverseWebSocketTransport } from './transport/reverse-ws.js'
-export { HttpTransport } from './transport/http.js'
-export { SseTransport } from './transport/sse.js'
-export { ReconnectPolicy } from './transport/reconnect.js'
+export {
+  HttpTransport,
+  type HttpTransportOptions,
+  type HttpEventServerOptions,
+} from './transport/http.js'
 export type { ITransport, TransportState } from './transport/interface.js'
-export type { ReconnectOptions } from './transport/reconnect.js'
-export type { WebSocketTransportOptions } from './transport/ws.js'
-export type { ReverseWebSocketTransportOptions } from './transport/reverse-ws.js'
-export type { HttpTransportOptions, HttpEventServerOptions } from './transport/http.js'
-export type { SseTransportOptions } from './transport/sse.js'
+export { ReconnectPolicy, type ReconnectOptions } from './transport/reconnect.js'
+export {
+  ReverseWebSocketTransport,
+  type ReverseWebSocketTransportOptions,
+} from './transport/reverse-ws.js'
+export { SseTransport, type SseTransportOptions } from './transport/sse.js'
+export { WebSocketTransport, type WebSocketTransportOptions } from './transport/ws.js'
 
 // API
 export { BaseApi } from './api/base.js'

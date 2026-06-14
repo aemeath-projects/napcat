@@ -1,11 +1,5 @@
-import type { Result } from '../core/result.js'
-import type {
-  FriendInfo,
-  FriendCategory,
-  ProfileLike,
-  EmojiLike,
-  UserStatus,
-} from '../types/api.js'
+import type { Result } from '../core'
+import type { FriendInfo, FriendCategory, ProfileLike, EmojiLike, UserStatus } from '../types'
 
 import { BaseApi } from './base.js'
 
