@@ -18,7 +18,7 @@ export class TimeoutError extends NapCatError {
   readonly timeout: number
 
   constructor(action: string, timeout: number) {
-    super(`API call "${action}" timed out after ${timeout.toString()}ms`)
+    super(`API 调用 "${action}" 超时，超时时间 ${timeout.toString()}ms`)
     this.action = action
     this.timeout = timeout
   }

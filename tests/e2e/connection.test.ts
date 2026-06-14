@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 
-import { NapCatClient, WebSocketTransport } from '../../src/index.js'
+import { NapCatClient, WebSocketTransport } from '../../src/main.js'
 
 /** @live 需要真实 NapCat 实例 */
-describe.skip('E2E: Connection', () => {
+describe.skip('E2E：连接', () => {
   let client: NapCatClient
 
   beforeAll(async () => {
@@ -17,11 +17,11 @@ describe.skip('E2E: Connection', () => {
     await client?.disconnect()
   })
 
-  it('connects and state is connected', () => {
+  it('连接成功且状态为 connected', () => {
     expect(client.transport.state).toBe('connected')
   })
 
-  it('receives heartbeat event', async () => {
+  it('接收到心跳事件', async () => {
     const event = await new Promise((resolve) => {
       client.once('meta_event.heartbeat', resolve)
     })

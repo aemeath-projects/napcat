@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 import { ReconnectPolicy } from '../../../src/transport/reconnect.js'
 
-describe('ReconnectPolicy', () => {
+describe('重连策略', () => {
   beforeEach(() => {
     vi.useFakeTimers()
   })
@@ -31,7 +31,7 @@ describe('ReconnectPolicy', () => {
     expect(policy.nextDelay()).toBe(2000)
     expect(policy.nextDelay()).toBe(4000)
     expect(policy.nextDelay()).toBe(8000)
-    expect(policy.nextDelay()).toBe(10000) // capped at maxDelay
+    expect(policy.nextDelay()).toBe(10000) // 限制到 maxDelay
   })
 
   it('reset 后从初始值重新开始', () => {

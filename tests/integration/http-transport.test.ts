@@ -5,7 +5,7 @@ import { HttpTransport } from '../../src/transport/http.js'
 
 import { MockNapCatHttpServer } from './helpers/mock-http-server.js'
 
-describe('HttpTransport', () => {
+describe('HttpTransport HTTP 传输', () => {
   let napcat: MockNapCatHttpServer // 模拟 NapCat HTTP API 端点
   let transport: HttpTransport
 
@@ -19,7 +19,7 @@ describe('HttpTransport', () => {
     await napcat.close()
   })
 
-  it('connect() performs health check and succeeds', async () => {
+  it('connect() 执行健康检查并成功连接', async () => {
     napcat.onAction('get_login_info', () => ({
       status: 'ok',
       retcode: 0,
@@ -33,7 +33,7 @@ describe('HttpTransport', () => {
     expect(transport.state).toBe('connected')
   })
 
-  it('connect() throws ConnectionError if health check fails', async () => {
+  it('connect() 健康检查失败时抛出 ConnectionError', async () => {
     napcat.onAction('get_login_info', () => ({
       status: 'failed',
       retcode: 1400,
@@ -46,7 +46,7 @@ describe('HttpTransport', () => {
     await expect(transport.connect()).rejects.toBeInstanceOf(ConnectionError)
   })
 
-  it('call() sends POST to apiBaseUrl/action', async () => {
+  it('call() 发送 POST 请求到 apiBaseUrl/action', async () => {
     napcat.onAction('get_login_info', () => ({
       status: 'ok',
       retcode: 0,
@@ -67,7 +67,7 @@ describe('HttpTransport', () => {
     expect((resp.data as Record<string, unknown>).message_id).toBe(12300)
   })
 
-  it('receives events from NapCat event POST', async () => {
+  it('通过 NapCat 事件 POST 接收事件', async () => {
     napcat.onAction('get_login_info', () => ({
       status: 'ok',
       retcode: 0,
@@ -98,7 +98,7 @@ describe('HttpTransport', () => {
     expect((event as Record<string, unknown>).post_type).toBe('meta_event')
   })
 
-  it('disconnect() stops the event server', async () => {
+  it('disconnect() 停止事件服务器', async () => {
     napcat.onAction('get_login_info', () => ({
       status: 'ok',
       retcode: 0,

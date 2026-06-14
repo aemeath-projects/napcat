@@ -5,7 +5,7 @@ import { ReverseWebSocketTransport } from '../../src/transport/reverse-ws.js'
 
 import { MockNapCatWsClient } from './helpers/mock-ws-client.js'
 
-describe('ReverseWebSocketTransport', () => {
+describe('ReverseWebSocketTransport 反向 WebSocket 传输', () => {
   let transport: ReverseWebSocketTransport
   let client: MockNapCatWsClient
 
@@ -14,7 +14,7 @@ describe('ReverseWebSocketTransport', () => {
     await transport?.disconnect().catch(() => {})
   })
 
-  it('connect() starts server and accepts incoming connection', async () => {
+  it('connect() 启动服务器并接受传入连接', async () => {
     transport = new ReverseWebSocketTransport({ host: '127.0.0.1', port: 0, path: '/ws' })
     const connectPromise = new Promise<void>((resolve) => transport.once('connect', resolve))
     await transport.connect()
@@ -26,7 +26,7 @@ describe('ReverseWebSocketTransport', () => {
     expect(transport.state).toBe('connected')
   })
 
-  it('rejects connection with invalid token (close code 4001)', async () => {
+  it('拒绝 token 无效的连接（关闭码 4001）', async () => {
     transport = new ReverseWebSocketTransport({
       host: '127.0.0.1',
       port: 0,
@@ -39,7 +39,7 @@ describe('ReverseWebSocketTransport', () => {
     await expect(client.connect(transport.url, 'wrong-token')).rejects.toThrow()
   })
 
-  it('accepts connection with correct token', async () => {
+  it('接受 token 正确的连接', async () => {
     transport = new ReverseWebSocketTransport({
       host: '127.0.0.1',
       port: 0,
@@ -56,7 +56,7 @@ describe('ReverseWebSocketTransport', () => {
     expect(transport.state).toBe('connected')
   })
 
-  it('rejects second connection when maxConnections=1 (close code 4002)', async () => {
+  it('maxConnections=1 时拒绝第二个连接（关闭码 4002）', async () => {
     transport = new ReverseWebSocketTransport({
       host: '127.0.0.1',
       port: 0,
@@ -75,7 +75,7 @@ describe('ReverseWebSocketTransport', () => {
     await expect(client2.connect(transport.url)).rejects.toThrow()
   })
 
-  it('server keeps running after client disconnects', async () => {
+  it('客户端断开后服务器继续运行', async () => {
     transport = new ReverseWebSocketTransport({ host: '127.0.0.1', port: 0, path: '/ws' })
     const firstConnect = new Promise<void>((resolve) => transport.once('connect', resolve))
     await transport.connect()
@@ -99,7 +99,7 @@ describe('ReverseWebSocketTransport', () => {
     await client2.disconnect()
   })
 
-  it('call() times out when no response received', async () => {
+  it('未收到响应时 call() 超时', async () => {
     transport = new ReverseWebSocketTransport({
       host: '127.0.0.1',
       port: 0,
@@ -117,7 +117,7 @@ describe('ReverseWebSocketTransport', () => {
     await expect(transport.call('test_action', {})).rejects.toBeInstanceOf(TimeoutError)
   })
 
-  it('call() sends request and receives echo response', async () => {
+  it('call() 发送请求并接收 echo 响应', async () => {
     transport = new ReverseWebSocketTransport({
       host: '127.0.0.1',
       port: 0,
@@ -158,7 +158,7 @@ describe('ReverseWebSocketTransport', () => {
     expect(resp.retcode).toBe(0)
   })
 
-  it('receives pushed events via "event" emitter', async () => {
+  it('通过 "event" 发射器接收推送事件', async () => {
     transport = new ReverseWebSocketTransport({ host: '127.0.0.1', port: 0, path: '/ws' })
     await transport.connect()
 
@@ -178,7 +178,7 @@ describe('ReverseWebSocketTransport', () => {
     expect((event as Record<string, unknown>).post_type).toBe('meta_event')
   })
 
-  it('disconnect() closes server', async () => {
+  it('disconnect() 关闭服务器', async () => {
     transport = new ReverseWebSocketTransport({ host: '127.0.0.1', port: 0, path: '/ws' })
     await transport.connect()
     await transport.disconnect()

@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 
-import { NapCatClient, WebSocketTransport, SystemApi } from '../../src/index.js'
+import { NapCatClient, WebSocketTransport, SystemApi } from '../../src/main.js'
 
 /** @live 需要真实 NapCat 实例 */
-describe.skip('E2E: API calls', () => {
+describe.skip('E2E：API 调用', () => {
   let client: NapCatClient
   let systemApi: SystemApi
 
@@ -19,7 +19,7 @@ describe.skip('E2E: API calls', () => {
     await client?.disconnect()
   })
 
-  it('getLoginInfo returns valid login info', async () => {
+  it('getLoginInfo 返回有效的登录信息', async () => {
     const result = await systemApi.getLoginInfo()
     expect(result.ok).toBe(true)
     if (result.ok) {
@@ -28,7 +28,7 @@ describe.skip('E2E: API calls', () => {
     }
   })
 
-  it('getVersionInfo returns version', async () => {
+  it('getVersionInfo 返回版本信息', async () => {
     const result = await systemApi.getVersionInfo()
     expect(result.ok).toBe(true)
     if (result.ok) {

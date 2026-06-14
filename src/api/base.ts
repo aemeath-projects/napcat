@@ -7,8 +7,11 @@ export abstract class BaseApi {
   constructor(protected readonly client: NapCatClient) {}
 
   /** 调用 API 并将响应包装为 Result。Transport 层异常直接向上抛。 */
-  protected async invoke<T>(action: string, params?: Record<string, unknown>): Promise<Result<T>> {
-    const resp: ApiResponse = await this.client.call(action, params ?? {})
+  protected async invoke<T>(action: string, params?: object): Promise<Result<T>> {
+    const resp: ApiResponse = await this.client.call(
+      action,
+      (params ?? {}) as Record<string, unknown>,
+    )
     if (resp.status === 'ok' && resp.retcode === 0) {
       return { ok: true, data: resp.data as T }
     }

@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 
 # IntelliJ Idea
 .idea/
+
+# 本地 Napcat 文档
+NapCatDocs/

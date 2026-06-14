@@ -107,6 +107,34 @@ export interface FriendInfo {
   [key: string]: unknown
 }
 
+/** 好友分类列表。 */
+export interface FriendCategory {
+  category_id: number
+  category_name: string
+  friends: FriendInfo[]
+  [key: string]: unknown
+}
+
+/** 好友点赞信息。 */
+export interface ProfileLike {
+  like_list: { user_id: number; nickname: string; time: number }[]
+  [key: string]: unknown
+}
+
+/** 表情回应信息。 */
+export interface EmojiLike {
+  emoji_likes_list: { emoji_id: string; count: number }[]
+  [key: string]: unknown
+}
+
+/** 用户在线状态。 */
+export interface UserStatus {
+  user_id: number
+  status: number
+  ext_status: number
+  [key: string]: unknown
+}
+
 /** 陌生人信息。 */
 export interface StrangerInfo {
   user_id: number
@@ -175,8 +203,132 @@ export interface RkeyInfo {
   [key: string]: unknown
 }
 
+/** 群信息（扩展）。 */
+export interface GroupInfoEx {
+  group_id: number
+  group_name: string
+  member_count: number
+  max_member_count: number
+  [key: string]: unknown
+}
+
+/** 群 @全体成员 剩余次数。 */
+export interface GroupAtAllRemain {
+  can_at_all: boolean
+  remain_at_all_count_for_group: number
+  remain_at_all_count_for_uin: number
+  [key: string]: unknown
+}
+
+/** 群禁言成员。 */
+export interface GroupShutMember {
+  user_id: number
+  ban_time: number
+  [key: string]: unknown
+}
+
+/** 群系统消息。 */
+export type GroupSystemMsg = Record<string, unknown>
+
 /** 被忽略的请求。 */
 export type IgnoredRequest = Record<string, unknown>
+
+/** 最近联系人。 */
+export interface RecentContact {
+  user_id: number
+  group_id?: number
+  last_time: number
+  message_type: string
+  [key: string]: unknown
+}
+
+/** 内联键盘按钮点击参数。 */
+export interface InlineKeyboardClick {
+  group_id: number
+  bot_appid: string
+  button_id: string
+  callback_data: string
+  msg_seq: string
+}
+
+/** 私聊文件 URL 信息。 */
+export interface PrivateFileUrl {
+  url: string
+  [key: string]: unknown
+}
+
+/** QQ 个人资料设置参数。 */
+export interface QQProfile {
+  nickname?: string
+  company?: string
+  email?: string
+  college?: string
+  personal_note?: string
+  [key: string]: unknown
+}
+
+/** 在线客户端信息。 */
+export interface OnlineClient {
+  app_id: number
+  device_name: string
+  device_kind: string
+  [key: string]: unknown
+}
+
+/** 在线机型信息。 */
+export interface ModelShow {
+  model_show: string
+  [key: string]: unknown
+}
+
+/** QQ 机器人 UIN 范围。 */
+export interface RobotUinRange {
+  min_uin: number
+  max_uin: number
+  [key: string]: unknown
+}
+
+/** PacketServer 状态。 */
+export interface PacketStatus {
+  online: boolean
+  good: boolean
+  [key: string]: unknown
+}
+
+/** 凭证信息。 */
+export interface Credentials {
+  cookies: string
+  csrf_token: number
+  [key: string]: unknown
+}
+
+/** 客户端密钥。 */
+export interface ClientKey {
+  client_key: string
+  [key: string]: unknown
+}
+
+/** URL 安全检查结果。 */
+export interface UrlSafety {
+  level: number
+  [key: string]: unknown
+}
+
+/** 收藏项。 */
+export type CollectionItem = Record<string, unknown>
+
+/** 收藏创建参数。 */
+export interface CreateCollectionParams {
+  type: number
+  content: string
+  [key: string]: unknown
+}
+
+/** 自定义表情参数。 */
+export interface CustomFaceParams {
+  count?: number
+  [key: string]: unknown
+}
 
 /** MiniApp 参数。 */
 export type MiniAppParams = Record<string, unknown>

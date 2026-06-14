@@ -23,7 +23,7 @@ export interface MessageEvent extends OneBotEvent {
 /** 私聊（好友）消息事件。 */
 export interface PrivateMessageEvent extends MessageEvent {
   message_type: 'private'
-  sub_type: string // friend | group | other
+  sub_type: string // friend | group | other（好友 | 群临时 | 其他）
   target_id?: number | null
   temp_source?: number | null
 }
@@ -31,14 +31,22 @@ export interface PrivateMessageEvent extends MessageEvent {
 /** 群消息事件。 */
 export interface GroupMessageEvent extends MessageEvent {
   message_type: 'group'
-  sub_type: string // normal | anonymous | notice
+  sub_type: string // normal | anonymous | notice（普通 | 匿名 | 通知）
   group_id: number
   anonymous?: Anonymous | null
 }
 
 /** 机器人自发消息事件（NapCat 扩展，post_type=message_sent）。 */
-export interface MessageSentEvent extends Omit<MessageEvent, 'post_type'> {
+export interface MessageSentEvent extends OneBotEvent {
   post_type: 'message_sent'
+  message_type: string
+  sub_type: string
+  message_id: number
+  user_id: number
+  message: MessageSegment[] | string
+  raw_message: string
+  font: number
+  sender: Sender
   target_id: number
 }
 
@@ -96,7 +104,7 @@ export interface GroupUploadNotice extends NoticeEvent {
 /** 群管理员变更通知。 */
 export interface GroupAdminNotice extends NoticeEvent {
   notice_type: 'group_admin'
-  sub_type: string // set | unset
+  sub_type: string // set | unset（设置 | 取消）
   group_id: number
   user_id: number
 }
@@ -104,7 +112,7 @@ export interface GroupAdminNotice extends NoticeEvent {
 /** 群成员减少通知。 */
 export interface GroupDecreaseNotice extends NoticeEvent {
   notice_type: 'group_decrease'
-  sub_type: string // leave | kick | kick_me | disband
+  sub_type: string // leave | kick | kick_me | disband（退群 | 被踢 | 号被踢 | 解散）
   group_id: number
   user_id: number
   operator_id: number
@@ -113,7 +121,7 @@ export interface GroupDecreaseNotice extends NoticeEvent {
 /** 群成员增加通知。 */
 export interface GroupIncreaseNotice extends NoticeEvent {
   notice_type: 'group_increase'
-  sub_type: string // approve | invite
+  sub_type: string // approve | invite（同意 | 邀请）
   group_id: number
   user_id: number
   operator_id: number
@@ -122,7 +130,7 @@ export interface GroupIncreaseNotice extends NoticeEvent {
 /** 群禁言通知。 */
 export interface GroupBanNotice extends NoticeEvent {
   notice_type: 'group_ban'
-  sub_type: string // ban | lift_ban
+  sub_type: string // ban | lift_ban（禁言 | 解禁）
   group_id: number
   user_id: number
   operator_id: number
@@ -150,7 +158,7 @@ export interface GroupCardNotice extends NoticeEvent {
 /** 精华消息通知。 */
 export interface EssenceNotice extends NoticeEvent {
   notice_type: 'essence'
-  sub_type: string // add | delete
+  sub_type: string // add | delete（加精 | 取消）
   group_id: number
   message_id: number
   sender_id: number
@@ -246,7 +254,7 @@ export interface FriendRequestEvent extends RequestEvent {
 /** 入群请求。 */
 export interface GroupRequestEvent extends RequestEvent {
   request_type: 'group'
-  sub_type: string // add | invite
+  sub_type: string // add | invite（添加 | 邀请）
   group_id: number
 }
 

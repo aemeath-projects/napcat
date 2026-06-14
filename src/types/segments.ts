@@ -167,7 +167,7 @@ export interface JsonSegment {
 export interface MusicSegment {
   type: 'music'
   data: {
-    type: string // qq | 163 | kugou | kuwo | migu | custom
+    type: string // qq | 163 | kugou | kuwo | migu | custom（QQ | 网易云 | 酷狗 | 酷我 | 咪咕 | 自定义）
     id?: string | null
     url?: string | null
     image?: string | null
@@ -194,7 +194,7 @@ export interface NodeSegment {
 export interface ContactSegment {
   type: 'contact'
   data: {
-    type: string // qq | group
+    type: string // qq | group（QQ好友 | 群聊）
     id: string
     [key: string]: unknown
   }

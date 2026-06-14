@@ -6,10 +6,11 @@ import { WebSocketServer, WebSocket, type RawData } from 'ws'
 
 import { TypedEventEmitter } from '../core/emitter.js'
 import { TransportError, TimeoutError } from '../core/errors.js'
-import type { ApiResponse, OneBotEvent } from '../types/common.js'
+import type { ApiResponse } from '../types/common.js'
 import type { TransportEventMap } from '../types/events.js'
 
 import type { ITransport, TransportState } from './interface.js'
+import { handleIncomingMessage, type PendingCall } from './message.js'
 
 /** ReverseWebSocketTransport 构造参数。 */
 export interface ReverseWebSocketTransportOptions {
@@ -25,13 +26,6 @@ export interface ReverseWebSocketTransportOptions {
   maxConnections?: number
   /** API 调用超时（ms），默认 10000 */
   timeout?: number
-}
-
-/** 等待中的 API 调用。 */
-interface PendingCall {
-  resolve: (resp: ApiResponse) => void
-  reject: (err: Error) => void
-  timer: ReturnType<typeof setTimeout>
 }
 
 /** 反向 WebSocket Transport：SDK 启动 WS server，NapCat 主动连接进来。 */
@@ -58,7 +52,7 @@ export class ReverseWebSocketTransport
     super()
     this._host = opts.host ?? '127.0.0.1'
     this._port = opts.port
-    this._path = opts.path ?? '/'
+    this._path = opts.path != null ? (opts.path.startsWith('/') ? opts.path : `/${opts.path}`) : '/'
     this._token = opts.token
     this._maxConnections = opts.maxConnections ?? 1
     this._timeout = opts.timeout ?? 10000
@@ -78,7 +72,11 @@ export class ReverseWebSocketTransport
     return `ws://${this._host}:${this._actualPort.toString()}${this._path}`
   }
 
-  /** 启动 WS server，开始接受 NapCat 的连接。 */
+  /**
+   * 启动 WS server 并开始监听。注意：本方法仅启动 server，`connect` 事件
+   * 会在 NapCat 客户端实际连接进来时才触发（见 `_handleIncomingConnection`），
+   * 这与 WebSocketTransport.connect() 的行为不同。
+   */
   async connect(): Promise<void> {
     this._intentionalClose = false
 
@@ -201,7 +199,7 @@ export class ReverseWebSocketTransport
         : Array.isArray(raw)
           ? Buffer.concat(raw).toString('utf8')
           : Buffer.from(raw).toString('utf8')
-      this._handleMessage(text)
+      handleIncomingMessage(text, this._pending, (event, data) => this.emit(event, data))
     })
 
     ws.on('close', () => {
@@ -228,33 +226,11 @@ export class ReverseWebSocketTransport
     })
   }
 
-  /** 处理收到的消息，区分 API 响应和事件推送。 */
-  private _handleMessage(raw: string): void {
-    let data: Record<string, unknown>
-    try {
-      data = JSON.parse(raw) as Record<string, unknown>
-    } catch {
-      return
-    }
-
-    // 含 echo 且无 post_type → API 响应
-    if (typeof data.echo === 'string' && data.post_type === undefined) {
-      const pending = this._pending.get(data.echo)
-      if (pending) {
-        clearTimeout(pending.timer)
-        this._pending.delete(data.echo)
-        pending.resolve(data as unknown as ApiResponse)
-      }
-      return
-    }
-
-    // 有 post_type → OneBot 事件推送
-    if (typeof data.post_type === 'string') {
-      this.emit('event', data as OneBotEvent)
-    }
-  }
-
-  /** 从 HTTP 请求解析 token（URL query string 或 Authorization header）。 */
+  /**
+   * 从 HTTP 请求解析 token。WS 客户端模式下 NapCat 通过 URL query
+   * `access_token` 传递 token，故优先从 query string 提取；
+   * 其次才从 `Authorization: Bearer` header 提取作为兜底。
+   */
   private _getTokenFromRequest(req: IncomingMessage): string | undefined {
     // 优先从 URL query string 取 access_token
     const url = req.url ?? ''

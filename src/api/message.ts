@@ -1,5 +1,12 @@
 import type { Result } from '../core/result.js'
-import type { MessageDetail, ForwardMessage, ForwardNode, SendMsgParams } from '../types/api.js'
+import type {
+  MessageDetail,
+  ForwardMessage,
+  ForwardNode,
+  SendMsgParams,
+  RecentContact,
+  InlineKeyboardClick,
+} from '../types/api.js'
 import type { MessageSegment } from '../types/segments.js'
 
 import { BaseApi } from './base.js'
@@ -24,7 +31,7 @@ export class MessageApi extends BaseApi {
 
   /** 发送消息（通用）。 */
   sendMsg(params: SendMsgParams): Promise<Result<{ message_id: number }>> {
-    return this.invoke('send_msg', params as unknown as Record<string, unknown>)
+    return this.invoke('send_msg', params)
   }
 
   /** 撤回消息。 */
@@ -58,9 +65,24 @@ export class MessageApi extends BaseApi {
     return this.invoke('send_private_forward_msg', { user_id: userId, messages: nodes })
   }
 
+  /** 发送合并转发（通用）。 */
+  sendForwardMsg(nodes: ForwardNode[]): Promise<Result<{ message_id: number }>> {
+    return this.invoke('send_forward_msg', { messages: nodes })
+  }
+
   /** 标记消息已读。 */
   markMsgAsRead(messageId: number): Promise<Result<void>> {
     return this.invoke('mark_msg_as_read', { message_id: messageId })
+  }
+
+  /** 标记群聊消息已读。 */
+  markGroupMsgAsRead(groupId: number, time?: number): Promise<Result<void>> {
+    return this.invoke('mark_group_msg_as_read', { group_id: groupId, time })
+  }
+
+  /** 发送戳一戳（私聊或群聊）。 */
+  sendPoke(userId: number, groupId?: number): Promise<Result<void>> {
+    return this.invoke('send_poke', { user_id: userId, group_id: groupId })
   }
 
   /** 获取群聊历史消息。 */
@@ -87,5 +109,15 @@ export class MessageApi extends BaseApi {
       message_seq: messageSeq,
       count,
     })
+  }
+
+  /** 获取最近的聊天记录。 */
+  getRecentContact(count?: number): Promise<Result<RecentContact[]>> {
+    return this.invoke('get_recent_contact', { count })
+  }
+
+  /** 点击内联键盘按钮。 */
+  clickInlineKeyboardButton(params: InlineKeyboardClick): Promise<Result<void>> {
+    return this.invoke('click_inline_keyboard_button', params)
   }
 }

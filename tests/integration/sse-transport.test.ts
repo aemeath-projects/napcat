@@ -4,7 +4,7 @@ import { SseTransport } from '../../src/transport/sse.js'
 
 import { MockNapCatSseServer } from './helpers/mock-sse-server.js'
 
-describe('SseTransport', () => {
+describe('SseTransport SSE 传输', () => {
   let server: MockNapCatSseServer
   let transport: SseTransport
 
@@ -18,7 +18,7 @@ describe('SseTransport', () => {
     await server.close()
   })
 
-  it('connect() establishes SSE connection', async () => {
+  it('connect() 建立 SSE 连接', async () => {
     transport = new SseTransport({ baseUrl: server.baseUrl })
     const connectPromise = new Promise<void>((resolve) => transport.once('connect', resolve))
     await transport.connect()
@@ -26,7 +26,7 @@ describe('SseTransport', () => {
     expect(transport.state).toBe('connected')
   })
 
-  it('receives SSE events', async () => {
+  it('接收 SSE 事件', async () => {
     transport = new SseTransport({ baseUrl: server.baseUrl })
     await transport.connect()
     await new Promise<void>((resolve) => transport.once('connect', resolve))
@@ -42,7 +42,7 @@ describe('SseTransport', () => {
     expect((event as Record<string, unknown>).post_type).toBe('meta_event')
   })
 
-  it('call() sends POST request', async () => {
+  it('call() 发送 POST 请求', async () => {
     server.onAction('send_msg', (body) => ({ message_id: Number(body.user_id ?? 0) }))
     transport = new SseTransport({ baseUrl: server.baseUrl })
     await transport.connect()
@@ -53,7 +53,7 @@ describe('SseTransport', () => {
     expect((resp.data as Record<string, unknown>).message_id).toBe(100)
   })
 
-  it('disconnect() closes connection', async () => {
+  it('disconnect() 关闭连接', async () => {
     transport = new SseTransport({ baseUrl: server.baseUrl })
     await transport.connect()
     await new Promise<void>((resolve) => transport.once('connect', resolve))
@@ -61,7 +61,7 @@ describe('SseTransport', () => {
     expect(transport.state).toBe('disconnected')
   })
 
-  it('reconnects after SSE connection drops', async () => {
+  it('SSE 连接断开后自动重连', async () => {
     transport = new SseTransport({
       baseUrl: server.baseUrl,
       reconnect: { initialDelay: 100, maxDelay: 200, jitter: 0 },

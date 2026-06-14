@@ -8,8 +8,8 @@ interface TestEvents {
   count: (n: number) => void
 }
 
-describe('TypedEventEmitter', () => {
-  it('on/emit works with typed events', () => {
+describe('TypedEventEmitter 类型化事件发射器', () => {
+  it('on/emit 对类型化事件正常工作', () => {
     const emitter = new TypedEventEmitter<TestEvents>()
     const listener = vi.fn()
     emitter.on('data', listener)
@@ -17,7 +17,7 @@ describe('TypedEventEmitter', () => {
     expect(listener).toHaveBeenCalledWith('hello')
   })
 
-  it('once fires only once', () => {
+  it('once 只触发一次', () => {
     const emitter = new TypedEventEmitter<TestEvents>()
     const listener = vi.fn()
     emitter.once('count', listener)
@@ -27,7 +27,7 @@ describe('TypedEventEmitter', () => {
     expect(listener).toHaveBeenCalledWith(1)
   })
 
-  it('off removes listener', () => {
+  it('off 移除监听器', () => {
     const emitter = new TypedEventEmitter<TestEvents>()
     const listener = vi.fn()
     emitter.on('data', listener)
@@ -36,7 +36,7 @@ describe('TypedEventEmitter', () => {
     expect(listener).not.toHaveBeenCalled()
   })
 
-  it('removeAllListeners clears all', () => {
+  it('removeAllListeners 清除所有监听器', () => {
     const emitter = new TypedEventEmitter<TestEvents>()
     const l1 = vi.fn()
     const l2 = vi.fn()

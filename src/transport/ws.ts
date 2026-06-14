@@ -5,23 +5,17 @@ import { WebSocket } from 'ws'
 
 import { TypedEventEmitter } from '../core/emitter.js'
 import { TransportError, TimeoutError } from '../core/errors.js'
-import type { ApiResponse, OneBotEvent } from '../types/common.js'
+import type { ApiResponse } from '../types/common.js'
 import type { TransportEventMap } from '../types/events.js'
 
 import type { ITransport, TransportState } from './interface.js'
+import { handleIncomingMessage, type PendingCall } from './message.js'
 import { ReconnectPolicy } from './reconnect.js'
 import type { ReconnectOptions } from './reconnect.js'
 
 /** WebSocketTransport 扩展事件映射，增加 reconnecting 事件。 */
 export interface WsTransportEventMap extends TransportEventMap {
   reconnecting: (attempt: number, delay: number) => void
-}
-
-/** 等待中的 API 调用。 */
-interface PendingCall {
-  resolve: (resp: ApiResponse) => void
-  reject: (err: Error) => void
-  timer: ReturnType<typeof setTimeout>
 }
 
 /** WebSocketTransport 构造参数。 */
@@ -96,7 +90,7 @@ export class WebSocketTransport
       }
 
       ws.on('open', onOpen)
-      ws.on('error', onError)
+      ws.once('error', onError)
 
       ws.on('message', (raw) => {
         const text = Buffer.isBuffer(raw)
@@ -104,7 +98,7 @@ export class WebSocketTransport
           : Array.isArray(raw)
             ? Buffer.concat(raw).toString('utf8')
             : Buffer.from(raw).toString('utf8')
-        this._handleMessage(text)
+        handleIncomingMessage(text, this._pending, (event, data) => this.emit(event, data))
       })
 
       ws.on('close', () => {
@@ -135,10 +129,12 @@ export class WebSocketTransport
     }
 
     return new Promise<void>((resolve) => {
-      const onClose = () => {
+      const done = () => {
+        clearTimeout(timer)
         resolve()
       }
-      this._ws?.once('close', onClose)
+      const timer = setTimeout(done, 5000) // 5s 超时保护
+      this._ws?.once('close', done)
       this._ws?.close()
     })
   }
@@ -168,36 +164,6 @@ export class WebSocketTransport
     if (!this._token) return this._url
     const separator = this._url.includes('?') ? '&' : '?'
     return `${this._url}${separator}access_token=${encodeURIComponent(this._token)}`
-  }
-
-  /** 处理收到的消息，区分 API 响应和事件推送。 */
-  private _handleMessage(raw: string): void {
-    let data: Record<string, unknown>
-    try {
-      data = JSON.parse(raw) as Record<string, unknown>
-    } catch {
-      return
-    }
-
-    // 含 echo 且无 post_type → API 响应
-    if (typeof data.echo === 'string' && data.post_type === undefined) {
-      const pending = this._pending.get(data.echo)
-      if (pending) {
-        clearTimeout(pending.timer)
-        this._pending.delete(data.echo)
-        pending.resolve(data as unknown as ApiResponse)
-      }
-      return
-    }
-
-    // 有 post_type → OneBot 事件推送
-    if (typeof data.post_type === 'string') {
-      // JSON.parse 返回 any，此处已验证 post_type 字段存在，强制转换类型
-
-      const event = data as unknown as OneBotEvent
-
-      this.emit('event', event)
-    }
   }
 
   /** 安排重连。 */

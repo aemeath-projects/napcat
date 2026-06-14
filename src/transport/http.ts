@@ -46,7 +46,8 @@ export class HttpTransport extends TypedEventEmitter<TransportEventMap> implemen
     this._token = opts.token
     this._eventHost = opts.eventServer.host ?? '127.0.0.1'
     this._eventPort = opts.eventServer.port
-    this._eventPath = opts.eventServer.path ?? '/onebot/event'
+    const rawPath = opts.eventServer.path ?? '/onebot/event'
+    this._eventPath = rawPath.startsWith('/') ? rawPath : `/${rawPath}`
   }
 
   get state(): TransportState {
@@ -182,7 +183,7 @@ export class HttpTransport extends TypedEventEmitter<TransportEventMap> implemen
       const provided = this._extractToken(req)
       if (provided !== this._token) {
         res.writeHead(401, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ status: 'failed', message: 'Unauthorized' }))
+        res.end(JSON.stringify({ status: 'failed', message: '未授权' }))
         return
       }
     }
@@ -203,7 +204,11 @@ export class HttpTransport extends TypedEventEmitter<TransportEventMap> implemen
     })
   }
 
-  /** 从请求中提取 token（Authorization header 或 query string）。 */
+  /**
+   * 从请求中提取 token。HTTP 事件上报模式下 NapCat 通过
+   * `Authorization: Bearer` header 传递 token，故优先从 header 提取；
+   * 其次才从 URL query string 的 `access_token` 提取作为兜底。
+   */
   private _extractToken(req: IncomingMessage): string | undefined {
     // 优先从 Authorization: Bearer <token>
     const authHeader = req.headers.authorization

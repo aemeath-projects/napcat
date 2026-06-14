@@ -5,7 +5,7 @@ import { WebSocketTransport } from '../../src/transport/ws.js'
 
 import { MockNapCatWsServer } from './helpers/mock-ws-server.js'
 
-describe('NapCatClient', () => {
+describe('NapCatClient 客户端', () => {
   let server: MockNapCatWsServer
   let transport: WebSocketTransport
   let client: NapCatClient
@@ -22,14 +22,14 @@ describe('NapCatClient', () => {
     await server.close()
   })
 
-  it('connect/disconnect delegates to transport', async () => {
+  it('connect/disconnect 委托给 transport', async () => {
     await client.connect()
     expect(client.transport.state).toBe('connected')
     await client.disconnect()
     expect(client.transport.state).toBe('disconnected')
   })
 
-  it('forwards connect and close events from transport', async () => {
+  it('转发 transport 的 connect 和 close 事件', async () => {
     const connectSpy = vi.fn()
     const closeSpy = vi.fn()
     client.on('connect', connectSpy)
@@ -40,7 +40,7 @@ describe('NapCatClient', () => {
     expect(closeSpy).toHaveBeenCalledTimes(1)
   })
 
-  it('dispatches message.group event for group messages', async () => {
+  it('群消息分发到 message.group 事件', async () => {
     await client.connect()
     const spy = vi.fn()
     client.on('message.group', spy)
@@ -62,7 +62,7 @@ describe('NapCatClient', () => {
     expect(spy.mock.calls[0][0].message_type).toBe('group')
   })
 
-  it('dispatches message event for all messages', async () => {
+  it('所有消息分发到 message 事件', async () => {
     await client.connect()
     const spy = vi.fn()
     client.on('message', spy)
@@ -82,7 +82,7 @@ describe('NapCatClient', () => {
     expect(spy).toHaveBeenCalledTimes(1)
   })
 
-  it('dispatches message_sent event (no sub-key dispatch)', async () => {
+  it('message_sent 事件分发（无子键分发）', async () => {
     await client.connect()
     const messageSentSpy = vi.fn()
     const messageSpy = vi.fn()
@@ -106,7 +106,7 @@ describe('NapCatClient', () => {
     expect(messageSpy).toHaveBeenCalledTimes(0) // message_sent ≠ message
   })
 
-  it('dispatches notice.group_ban for group ban notices', async () => {
+  it('群禁言通知分发到 notice.group_ban', async () => {
     await client.connect()
     const specificSpy = vi.fn()
     const generalSpy = vi.fn()
@@ -130,7 +130,7 @@ describe('NapCatClient', () => {
     expect(generalSpy).toHaveBeenCalledTimes(1)
   })
 
-  it('dispatches request events correctly', async () => {
+  it('正确分发请求事件', async () => {
     await client.connect()
     const specificSpy = vi.fn()
     const generalSpy = vi.fn()
@@ -152,7 +152,7 @@ describe('NapCatClient', () => {
     expect(generalSpy).toHaveBeenCalledTimes(1)
   })
 
-  it('call() delegates to transport', async () => {
+  it('call() 委托给 transport', async () => {
     server.onAction('get_login_info', () => ({ status: 'ok', retcode: 0, data: { user_id: 1234 } }))
     await client.connect()
     const resp = await client.call('get_login_info', {})

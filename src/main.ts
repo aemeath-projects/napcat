@@ -1,4 +1,4 @@
-/** @aemeath-projects/napcat — NapCat / OneBot 11 TypeScript SDK */
+/** NapCat / OneBot 11 TypeScript SDK — @aemeath-projects/napcat */
 
 // 核心
 export { NapCatClient } from './core/client.js'
@@ -12,7 +12,7 @@ export {
 } from './core/errors.js'
 export type { Result } from './core/result.js'
 
-// Transport
+// 传输层
 export { WebSocketTransport } from './transport/ws.js'
 export { ReverseWebSocketTransport } from './transport/reverse-ws.js'
 export { HttpTransport } from './transport/http.js'
@@ -34,6 +34,6 @@ export { FileApi } from './api/file.js'
 export { SystemApi } from './api/system.js'
 export { ExtensionApi } from './api/extension.js'
 
-// Utils
+// 工具函数
 export { Seg, extractPlaintext } from './utils/segment.js'
 export * from './utils/guards.js'

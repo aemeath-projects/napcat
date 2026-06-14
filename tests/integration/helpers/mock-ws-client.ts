@@ -17,7 +17,7 @@ export class MockNapCatWsClient {
         const onCloseAfterOpen = (code: number) => {
           this.closeCode = code
           if (code >= 4000) {
-            reject(new Error(`Connection rejected with close code ${code}`))
+            reject(new Error(`连接被拒绝，关闭码 ${code}`))
           }
           // code 1000 表示正常关闭，connect 已 resolve，不额外处理
         }
@@ -46,7 +46,7 @@ export class MockNapCatWsClient {
         cleanup()
         this.closeCode = code
         // 连接在 open 之前就被关闭（握手被拒绝）
-        reject(new Error(`Connection closed before open, code ${code}`))
+        reject(new Error(`连接在打开前已关闭，关闭码 ${code}`))
       }
 
       const cleanup = () => {

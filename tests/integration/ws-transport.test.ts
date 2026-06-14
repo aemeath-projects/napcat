@@ -5,7 +5,7 @@ import { WebSocketTransport } from '../../src/transport/ws.js'
 
 import { MockNapCatWsServer } from './helpers/mock-ws-server.js'
 
-describe('WebSocketTransport', () => {
+describe('WebSocketTransport WebSocket 传输', () => {
   let server: MockNapCatWsServer
   let transport: WebSocketTransport
 
@@ -19,7 +19,7 @@ describe('WebSocketTransport', () => {
     await server.close()
   })
 
-  it('connects successfully', async () => {
+  it('成功连接', async () => {
     transport = new WebSocketTransport({ url: server.url })
     const connectPromise = new Promise<void>((resolve) => transport.once('connect', resolve))
     await transport.connect()
@@ -27,7 +27,7 @@ describe('WebSocketTransport', () => {
     expect(transport.state).toBe('connected')
   })
 
-  it('call() sends action and receives response via echo', async () => {
+  it('call() 发送 action 并通过 echo 接收响应', async () => {
     server.onAction('get_login_info', () => ({
       status: 'ok',
       retcode: 0,
@@ -41,7 +41,7 @@ describe('WebSocketTransport', () => {
     expect((resp.data as Record<string, unknown>).user_id).toBe(12345)
   })
 
-  it('receives pushed events via "event" emitter', async () => {
+  it('通过 "event" 发射器接收推送事件', async () => {
     transport = new WebSocketTransport({ url: server.url })
     await transport.connect()
     const eventPromise = new Promise<unknown>((resolve) => transport.once('event', resolve))
@@ -55,14 +55,14 @@ describe('WebSocketTransport', () => {
     expect((event as Record<string, unknown>).post_type).toBe('meta_event')
   })
 
-  it('call() times out if no response received', async () => {
+  it('未收到响应时 call() 超时', async () => {
     transport = new WebSocketTransport({ url: server.url, timeout: 100 })
     await transport.connect()
     // 没有注册 handler，服务器不响应
     await expect(transport.call('no_handler_action', {})).rejects.toBeInstanceOf(TimeoutError)
   })
 
-  it('disconnects cleanly', async () => {
+  it('干净地断开连接', async () => {
     transport = new WebSocketTransport({ url: server.url })
     await transport.connect()
     const closePromise = new Promise<void>((resolve) => transport.once('close', resolve))
@@ -71,14 +71,14 @@ describe('WebSocketTransport', () => {
     expect(transport.state).toBe('disconnected')
   })
 
-  it('sends token as access_token query param when provided', async () => {
+  it('提供 token 时作为 access_token 查询参数发送', async () => {
     // 通过连接成功验证（mock server 不鉴权）
     transport = new WebSocketTransport({ url: server.url, token: 'test-token' })
     await transport.connect()
     expect(transport.state).toBe('connected')
   })
 
-  it('reconnects after disconnect when reconnect option provided', async () => {
+  it('启用重连选项后断开时自动重连', async () => {
     transport = new WebSocketTransport({
       url: server.url,
       reconnect: { initialDelay: 50, maxDelay: 200, jitter: 0 },

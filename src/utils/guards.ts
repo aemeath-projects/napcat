@@ -4,7 +4,6 @@
 
 import type {
   OneBotEvent,
-  AnyOneBotEvent,
   GroupMessageEvent,
   PrivateMessageEvent,
   MessageSentEvent,
@@ -15,24 +14,18 @@ import type {
 
 /** 判断事件是否为群消息事件。 */
 export function isGroupMessage(event: OneBotEvent): event is GroupMessageEvent {
-  return (
-    event.post_type === 'message' &&
-    'message_type' in event &&
-    (event as unknown as { message_type: string }).message_type === 'group'
-  )
+  // eslint-disable-next-line @typescript-eslint/dot-notation -- `message_type` 不是 OneBotEvent 上声明的键
+  return event.post_type === 'message' && event['message_type'] === 'group'
 }
 
 /** 判断事件是否为私聊消息事件。 */
 export function isPrivateMessage(event: OneBotEvent): event is PrivateMessageEvent {
-  return (
-    event.post_type === 'message' &&
-    'message_type' in event &&
-    (event as unknown as { message_type: string }).message_type === 'private'
-  )
+  // eslint-disable-next-line @typescript-eslint/dot-notation
+  return event.post_type === 'message' && event['message_type'] === 'private'
 }
 
 /** 判断事件是否为机器人自发消息事件（NapCat 扩展）。 */
-export function isMessageSent(event: AnyOneBotEvent): event is MessageSentEvent {
+export function isMessageSent(event: OneBotEvent): event is MessageSentEvent {
   return event.post_type === 'message_sent'
 }
 

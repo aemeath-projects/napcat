@@ -1,6 +1,7 @@
 export type { ITransport, TransportState } from './interface.js'
 export { ReconnectPolicy } from './reconnect.js'
 export type { ReconnectOptions } from './reconnect.js'
+export type { PendingCall } from './message.js'
 export { WebSocketTransport } from './ws.js'
 export type { WebSocketTransportOptions, WsTransportEventMap } from './ws.js'
 export { ReverseWebSocketTransport } from './reverse-ws.js'
