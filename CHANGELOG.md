@@ -2,6 +2,13 @@
 
 所有版本变更记录
 
+## [1.1.0](https://github.com/aemeath-projects/napcat/compare/v1.0.0...v1.1.0) (2026-06-15)
+
+
+### 新功能
+
+* **api:** 全面更新 API 参数并新增 NapCat 4.18.6 接口 ([3b8a4e3](https://github.com/aemeath-projects/napcat/commit/3b8a4e328f533c653d10abe174138aef7bb4c301))
+
 ## 1.0.0 (2026-06-14)
 
 
