@@ -1,9 +1,10 @@
 /** HTTP Transport 实现：API 调用走 HTTP POST，事件接收走内置 HTTP server。 */
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
 
-import { TypedEventEmitter, ConnectionError, TransportError } from '../core'
+import { TypedEventEmitter, ConnectionError } from '../core'
 import type { ApiResponse, OneBotEvent, TransportEventMap } from '../types'
 
+import { apiCall } from './http-client.js'
 import type { ITransport, TransportState } from './interface.js'
 
 /** Event server 监听配置。 */
@@ -96,40 +97,8 @@ export class HttpTransport extends TypedEventEmitter<TransportEventMap> implemen
     this.emit('close')
   }
 
-  /**
-   * 向 apiBaseUrl/<action> 发 POST 请求，直接返回 ApiResponse。
-   * 网络错误抛 TransportError。
-   */
   async call(action: string, params: Record<string, unknown>): Promise<ApiResponse> {
-    const url = `${this._apiBaseUrl}/${action}`
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    }
-    if (this._token) {
-      headers.Authorization = `Bearer ${this._token}`
-    }
-
-    let response: Response
-    try {
-      response = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(params),
-      })
-    } catch (err) {
-      throw new TransportError(
-        `HTTP 请求失败 [${action}]：${err instanceof Error ? err.message : String(err)}`,
-      )
-    }
-
-    let data: ApiResponse
-    try {
-      data = (await response.json()) as ApiResponse
-    } catch {
-      throw new TransportError(`响应 JSON 解析失败 [${action}]：HTTP ${response.status.toString()}`)
-    }
-
-    return data
+    return apiCall(this._apiBaseUrl, action, params, this._token)
   }
 
   /** 启动内置 HTTP event server，监听 NapCat 的事件上报。 */

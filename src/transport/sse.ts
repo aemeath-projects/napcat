@@ -2,6 +2,7 @@
 import { TypedEventEmitter, TransportError } from '../core'
 import type { ApiResponse, OneBotEvent, TransportEventMap } from '../types'
 
+import { apiCall } from './http-client.js'
 import type { ITransport, TransportState } from './interface.js'
 import { ReconnectPolicy, type ReconnectOptions } from './reconnect.js'
 
@@ -63,6 +64,8 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
       headers.Authorization = `Bearer ${this._token}`
     }
 
+    // 注意：此处保留 fetch 而非使用 axios，因为 SSE 需要流式读取 resp.body.getReader()，
+    // axios 不支持流式响应体。
     let resp: Response
     try {
       resp = await fetch(url, {
@@ -186,37 +189,7 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
     this.emit('close')
   }
 
-  /**
-   * 向 baseUrl/<action> 发 POST 请求。
-   * 网络错误抛 TransportError。
-   */
   async call(action: string, params: Record<string, unknown>): Promise<ApiResponse> {
-    const url = `${this._baseUrl}/${action}`
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-    if (this._token) {
-      headers.Authorization = `Bearer ${this._token}`
-    }
-
-    let response: Response
-    try {
-      response = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(params),
-      })
-    } catch (err) {
-      throw new TransportError(
-        `HTTP 请求失败 [${action}]：${err instanceof Error ? err.message : String(err)}`,
-      )
-    }
-
-    let data: ApiResponse
-    try {
-      data = (await response.json()) as ApiResponse
-    } catch {
-      throw new TransportError(`响应 JSON 解析失败 [${action}]：HTTP ${response.status.toString()}`)
-    }
-
-    return data
+    return apiCall(this._baseUrl, action, params, this._token)
   }
 }

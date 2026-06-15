@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 import { ConnectionError } from '../../src/core'
 import { HttpTransport } from '../../src/transport'
+import { httpClient } from '../../src/transport/http-client.js'
 
 import { MockNapCatHttpServer } from './helpers/mock-http-server.js'
 
@@ -83,15 +84,11 @@ describe('HttpTransport HTTP 传输', () => {
 
     // 向 SDK 的 event server 发送事件
     const eventServerUrl = `http://127.0.0.1:${transport.eventServerPort}/onebot/event`
-    await fetch(eventServerUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        post_type: 'meta_event',
-        meta_event_type: 'heartbeat',
-        time: Date.now(),
-        self_id: 0,
-      }),
+    await httpClient.post(eventServerUrl, {
+      post_type: 'meta_event',
+      meta_event_type: 'heartbeat',
+      time: Date.now(),
+      self_id: 0,
     })
 
     const event = await eventPromise
@@ -126,7 +123,7 @@ describe('HttpTransport HTTP 传输', () => {
     await transport.connect()
 
     const eventServerUrl = `http://127.0.0.1:${transport.eventServerPort}/wrong-path`
-    const resp = await fetch(eventServerUrl, { method: 'POST' })
+    const resp = await httpClient.post(eventServerUrl)
     expect(resp.status).toBe(404)
   })
 
@@ -144,7 +141,7 @@ describe('HttpTransport HTTP 传输', () => {
     await transport.connect()
 
     const eventServerUrl = `http://127.0.0.1:${transport.eventServerPort}/onebot/event`
-    const resp = await fetch(eventServerUrl, { method: 'POST' })
+    const resp = await httpClient.post(eventServerUrl)
     expect(resp.status).toBe(401)
   })
 
@@ -164,19 +161,21 @@ describe('HttpTransport HTTP 传输', () => {
     // 通过 Bearer header 鉴权
     const eventServerUrl = `http://127.0.0.1:${transport.eventServerPort}/onebot/event`
     const eventPromise = new Promise<unknown>((resolve) => transport.once('event', resolve))
-    await fetch(eventServerUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer secret',
-      },
-      body: JSON.stringify({
+    await httpClient.post(
+      eventServerUrl,
+      {
         post_type: 'meta_event',
         meta_event_type: 'heartbeat',
         time: Date.now(),
         self_id: 0,
-      }),
-    })
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer secret',
+        },
+      },
+    )
 
     const event = await eventPromise
     expect((event as Record<string, unknown>).post_type).toBe('meta_event')
@@ -198,15 +197,11 @@ describe('HttpTransport HTTP 传输', () => {
     // 通过 query string 鉴权
     const eventServerUrl = `http://127.0.0.1:${transport.eventServerPort}/onebot/event?access_token=secret`
     const eventPromise = new Promise<unknown>((resolve) => transport.once('event', resolve))
-    await fetch(eventServerUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        post_type: 'meta_event',
-        meta_event_type: 'heartbeat',
-        time: Date.now(),
-        self_id: 0,
-      }),
+    await httpClient.post(eventServerUrl, {
+      post_type: 'meta_event',
+      meta_event_type: 'heartbeat',
+      time: Date.now(),
+      self_id: 0,
     })
 
     const event = await eventPromise
