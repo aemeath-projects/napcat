@@ -11,6 +11,7 @@ export interface SendMsgParams {
   user_id?: number
   group_id?: number
   message: MessageSegment[]
+  auto_escape?: boolean
 }
 
 /** 消息详情。 */
@@ -271,10 +272,8 @@ export interface PrivateFileUrl {
 /** QQ 个人资料设置参数。 */
 export interface QQProfile {
   nickname?: string
-  company?: string
-  email?: string
-  college?: string
   personal_note?: string
+  sex?: number | string
   [key: string]: unknown
 }
 
@@ -327,19 +326,6 @@ export interface UrlSafety {
 
 /** 收藏项，具体字段由 NapCat 实现定义，无固定结构。 */
 export type CollectionItem = Record<string, unknown>
-
-/** 收藏创建参数。 */
-export interface CreateCollectionParams {
-  type: number
-  content: string
-  [key: string]: unknown
-}
-
-/** 自定义表情参数。 */
-export interface CustomFaceParams {
-  count?: number
-  [key: string]: unknown
-}
 
 /** MiniApp 参数。不同小程序使用不同参数集合，无固定结构。 */
 export type MiniAppParams = Record<string, unknown>

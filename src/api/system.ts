@@ -5,7 +5,6 @@ import type {
   BotStatus,
   StrangerInfo,
   OcrResult,
-  QQProfile,
   OnlineClient,
   ModelShow,
   RobotUinRange,
@@ -45,8 +44,8 @@ export class SystemApi extends BaseApi {
   }
 
   /** 获取陌生人信息。 */
-  getStrangerInfo(userId: number): Promise<Result<StrangerInfo>> {
-    return this.invoke('get_stranger_info', { user_id: userId })
+  getStrangerInfo(userId: number, noCache?: boolean): Promise<Result<StrangerInfo>> {
+    return this.invoke('get_stranger_info', { user_id: userId, no_cache: noCache })
   }
 
   /** 获取 Cookies。 */
@@ -80,8 +79,8 @@ export class SystemApi extends BaseApi {
   }
 
   /** 获取语音。 */
-  getRecord(file: string, format: string): Promise<Result<{ file: string }>> {
-    return this.invoke('get_record', { file, out_format: format })
+  getRecord(file?: string, outFormat?: string): Promise<Result<{ file: string }>> {
+    return this.invoke('get_record', { file, out_format: outFormat })
   }
 
   /** 图片 OCR 识别。 */
@@ -90,8 +89,12 @@ export class SystemApi extends BaseApi {
   }
 
   /** 设置登录号资料。 */
-  setQQProfile(profile: QQProfile): Promise<Result<void>> {
-    return this.invoke('set_qq_profile', profile)
+  setQQProfile(
+    nickname: string,
+    personalNote?: string,
+    sex?: number | string,
+  ): Promise<Result<void>> {
+    return this.invoke('set_qq_profile', { nickname, personal_note: personalNote, sex })
   }
 
   /** 设置 QQ 头像。 */
@@ -124,8 +127,8 @@ export class SystemApi extends BaseApi {
   }
 
   /** 设置在线机型（兼容 go-cqhttp）。 */
-  setModelShow(model: string): Promise<Result<void>> {
-    return this.invoke('_set_model_show', { model })
+  setModelShow(): Promise<Result<void>> {
+    return this.invoke('_set_model_show')
   }
 
   /** 获取当前账号在线客户端列表。 */
@@ -149,12 +152,17 @@ export class SystemApi extends BaseApi {
   }
 
   /** 获取可疑好友添加请求。 */
-  getDoubtFriendsAddRequest(): Promise<Result<unknown>> {
-    return this.invoke('get_doubt_friends_add_request')
+  getDoubtFriendsAddRequest(count?: number): Promise<Result<unknown>> {
+    return this.invoke('get_doubt_friends_add_request', { count })
   }
 
   /** 处理可疑好友添加请求。 */
-  setDoubtFriendsAddRequest(params: Record<string, unknown>): Promise<Result<void>> {
-    return this.invoke('set_doubt_friends_add_request', params)
+  setDoubtFriendsAddRequest(flag: string, approve: boolean): Promise<Result<void>> {
+    return this.invoke('set_doubt_friends_add_request', { flag, approve })
+  }
+
+  /** 重启服务。 */
+  setRestart(): Promise<Result<void>> {
+    return this.invoke('set_restart')
   }
 }

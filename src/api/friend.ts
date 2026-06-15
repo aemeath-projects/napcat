@@ -41,18 +41,21 @@ export class FriendApi extends BaseApi {
   }
 
   /** 处理加群请求／邀请。 */
-  setGroupAddRequest(
-    flag: string,
-    subType: string,
-    approve: boolean,
-    reason?: string,
-  ): Promise<Result<void>> {
-    return this.invoke('set_group_add_request', { flag, sub_type: subType, approve, reason })
+  setGroupAddRequest(flag: string, approve?: boolean, reason?: string): Promise<Result<void>> {
+    return this.invoke('set_group_add_request', { flag, approve, reason })
   }
 
   /** 标记私聊消息已读。 */
-  markPrivateMsgAsRead(userId: number, time?: number): Promise<Result<void>> {
-    return this.invoke('mark_private_msg_as_read', { user_id: userId, time })
+  markPrivateMsgAsRead(
+    userId: number,
+    groupId?: number,
+    messageId?: string,
+  ): Promise<Result<void>> {
+    return this.invoke('mark_private_msg_as_read', {
+      user_id: userId,
+      group_id: groupId,
+      message_id: messageId,
+    })
   }
 
   /** 转发单条消息到私聊。 */
@@ -61,13 +64,25 @@ export class FriendApi extends BaseApi {
   }
 
   /** 获取个人资料点赞列表。 */
-  getProfileLike(): Promise<Result<ProfileLike>> {
-    return this.invoke('get_profile_like')
+  getProfileLike(start?: number, count?: number): Promise<Result<ProfileLike>> {
+    return this.invoke('get_profile_like', { start, count })
   }
 
-  /** 拉取表情回应列表。 */
-  fetchEmojiLike(): Promise<Result<EmojiLike>> {
-    return this.invoke('fetch_emoji_like')
+  /** 获取表情回应列表。 */
+  fetchEmojiLike(
+    messageId: number | string,
+    emojiId: number | string,
+    emojiType: number | string,
+    count: number,
+    cookie?: string,
+  ): Promise<Result<EmojiLike>> {
+    return this.invoke('fetch_emoji_like', {
+      message_id: messageId,
+      emojiId,
+      emojiType,
+      count,
+      cookie,
+    })
   }
 
   /** 获取用户在线状态（NapCat 扩展）。 */

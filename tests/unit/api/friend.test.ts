@@ -38,10 +38,9 @@ describe('好友 API', () => {
   it('setGroupAddRequest 处理群添加请求', async () => {
     const client = mockClient()
     const api = new FriendApi(client)
-    await api.setGroupAddRequest('flag456', 'add', false, 'no')
+    await api.setGroupAddRequest('flag456', false, 'no')
     expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('set_group_add_request', {
       flag: 'flag456',
-      sub_type: 'add',
       approve: false,
       reason: 'no',
     })
@@ -67,12 +66,13 @@ describe('好友 API', () => {
   it('markPrivateMsgAsRead 标记私聊消息已读', async () => {
     const client = mockClient()
     const api = new FriendApi(client)
-    await api.markPrivateMsgAsRead(9999, 1234567890)
+    await api.markPrivateMsgAsRead(9999)
     expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
       'mark_private_msg_as_read',
       {
         user_id: 9999,
-        time: 1234567890,
+        group_id: undefined,
+        message_id: undefined,
       },
     )
   })
@@ -101,13 +101,22 @@ describe('好友 API', () => {
     const client = mockClient({ like_list: [] })
     const api = new FriendApi(client)
     await api.getProfileLike()
-    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('get_profile_like', {})
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('get_profile_like', {
+      start: undefined,
+      count: undefined,
+    })
   })
   it('fetchEmojiLike 获取表情点赞', async () => {
     const client = mockClient({ emoji_likes_list: [] })
     const api = new FriendApi(client)
-    await api.fetchEmojiLike()
-    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('fetch_emoji_like', {})
+    await api.fetchEmojiLike(12345, '128514', 1, 20)
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('fetch_emoji_like', {
+      message_id: 12345,
+      emojiId: '128514',
+      emojiType: 1,
+      count: 20,
+      cookie: undefined,
+    })
   })
   it('ncGetUserStatus 获取用户状态', async () => {
     const client = mockClient({ user_id: 9999, status: 10, ext_status: 0 })

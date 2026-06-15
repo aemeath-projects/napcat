@@ -117,6 +117,10 @@ describe('消息 API', () => {
       group_id: 1001,
       message_seq: 100,
       count: 20,
+      reverse_order: undefined,
+      disable_get_url: undefined,
+      parse_mult_msg: undefined,
+      quick_reply: undefined,
     })
   })
   it('getFriendMsgHistory 调用 get_friend_msg_history', async () => {
@@ -127,6 +131,10 @@ describe('消息 API', () => {
       user_id: 9999,
       message_seq: 50,
       count: 10,
+      reverse_order: undefined,
+      disable_get_url: undefined,
+      parse_mult_msg: undefined,
+      quick_reply: undefined,
     })
   })
   it('sendForwardMsg 调用 send_forward_msg', async () => {
@@ -140,10 +148,11 @@ describe('消息 API', () => {
   it('markGroupMsgAsRead 调用 mark_group_msg_as_read', async () => {
     const client = mockClient()
     const api = new MessageApi(client)
-    await api.markGroupMsgAsRead(1001, 1234567890)
+    await api.markGroupMsgAsRead(1001)
     expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('mark_group_msg_as_read', {
       group_id: 1001,
-      time: 1234567890,
+      user_id: undefined,
+      message_id: undefined,
     })
   })
   it('带 groupId 的 sendPoke 调用 send_poke', async () => {
@@ -153,6 +162,7 @@ describe('消息 API', () => {
     expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('send_poke', {
       user_id: 9999,
       group_id: 1001,
+      target_id: undefined,
     })
   })
   it('不带 groupId 的 sendPoke 调用 send_poke', async () => {
@@ -162,6 +172,7 @@ describe('消息 API', () => {
     expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('send_poke', {
       user_id: 9999,
       group_id: undefined,
+      target_id: undefined,
     })
   })
   it('getRecentContact 调用 get_recent_contact', async () => {

@@ -76,13 +76,17 @@ export class MessageApi extends BaseApi {
   }
 
   /** 标记群聊消息已读。 */
-  markGroupMsgAsRead(groupId: number, time?: number): Promise<Result<void>> {
-    return this.invoke('mark_group_msg_as_read', { group_id: groupId, time })
+  markGroupMsgAsRead(groupId: number, userId?: number, messageId?: string): Promise<Result<void>> {
+    return this.invoke('mark_group_msg_as_read', {
+      group_id: groupId,
+      user_id: userId,
+      message_id: messageId,
+    })
   }
 
   /** 发送戳一戳（私聊或群聊）。 */
-  sendPoke(userId: number, groupId?: number): Promise<Result<void>> {
-    return this.invoke('send_poke', { user_id: userId, group_id: groupId })
+  sendPoke(userId: number, groupId?: number, targetId?: number): Promise<Result<void>> {
+    return this.invoke('send_poke', { user_id: userId, group_id: groupId, target_id: targetId })
   }
 
   /** 获取群聊历史消息。 */
@@ -90,11 +94,19 @@ export class MessageApi extends BaseApi {
     groupId: number,
     messageSeq?: number,
     count?: number,
+    reverseOrder?: boolean,
+    disableGetUrl?: boolean,
+    parseMultMsg?: boolean,
+    quickReply?: boolean,
   ): Promise<Result<MessageDetail[]>> {
     return this.invoke('get_group_msg_history', {
       group_id: groupId,
       message_seq: messageSeq,
       count,
+      reverse_order: reverseOrder,
+      disable_get_url: disableGetUrl,
+      parse_mult_msg: parseMultMsg,
+      quick_reply: quickReply,
     })
   }
 
@@ -103,11 +115,19 @@ export class MessageApi extends BaseApi {
     userId: number,
     messageSeq?: number,
     count?: number,
+    reverseOrder?: boolean,
+    disableGetUrl?: boolean,
+    parseMultMsg?: boolean,
+    quickReply?: boolean,
   ): Promise<Result<MessageDetail[]>> {
     return this.invoke('get_friend_msg_history', {
       user_id: userId,
       message_seq: messageSeq,
       count,
+      reverse_order: reverseOrder,
+      disable_get_url: disableGetUrl,
+      parse_mult_msg: parseMultMsg,
+      quick_reply: quickReply,
     })
   }
 

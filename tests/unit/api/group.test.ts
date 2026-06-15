@@ -112,6 +112,11 @@ describe('群 API', () => {
       group_id: 1001,
       content: 'content',
       image: undefined,
+      pinned: undefined,
+      type: undefined,
+      confirm_required: undefined,
+      is_show_edit_card: undefined,
+      tip_window_type: undefined,
     })
   })
   it('getGroupInfo 获取群信息', async () => {
@@ -211,11 +216,10 @@ describe('群 API', () => {
   it('setGroupPortrait 设置群头像', async () => {
     const client = mockClient()
     const api = new GroupApi(client)
-    await api.setGroupPortrait(1001, '/path/to/avatar.png', 1)
+    await api.setGroupPortrait(1001, '/path/to/avatar.png')
     expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('set_group_portrait', {
       group_id: 1001,
       file: '/path/to/avatar.png',
-      cache: 1,
     })
   })
   it('deleteGroupNotice 删除群公告', async () => {
@@ -256,7 +260,9 @@ describe('群 API', () => {
     const client = mockClient({})
     const api = new GroupApi(client)
     await api.getGroupSystemMsg()
-    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('get_group_system_msg', {})
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('get_group_system_msg', {
+      count: undefined,
+    })
   })
   it('getGroupIgnoredNotifies 获取被忽略的群通知', async () => {
     const client = mockClient([])
@@ -266,5 +272,198 @@ describe('群 API', () => {
       'get_group_ignored_notifies',
       {},
     )
+  })
+
+  // ── 4.18.6 新增群相关端点测试 ──
+
+  it('getGroupDetailInfo 获取群详细信息', async () => {
+    const client = mockClient({ group_id: 1001, group_name: 'Test', member_count: 50 })
+    const api = new GroupApi(client)
+    const result = await api.getGroupDetailInfo(1001)
+    expect(result.ok).toBe(true)
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('get_group_detail_info', {
+      group_id: 1001,
+    })
+  })
+
+  it('getGroupSignedList 获取群打卡列表', async () => {
+    const client = mockClient([])
+    const api = new GroupApi(client)
+    await api.getGroupSignedList(1001)
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('get_group_signed_list', {
+      group_id: 1001,
+    })
+  })
+
+  it('getQunAlbumList 获取群相册列表', async () => {
+    const client = mockClient([])
+    const api = new GroupApi(client)
+    await api.getQunAlbumList(1001, 'attach_info_abc')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('get_qun_album_list', {
+      group_id: 1001,
+      attach_info: 'attach_info_abc',
+    })
+  })
+
+  it('getGroupAlbumMediaList 获取群相册媒体列表', async () => {
+    const client = mockClient([])
+    const api = new GroupApi(client)
+    await api.getGroupAlbumMediaList(1001, 'album_001')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
+      'get_group_album_media_list',
+      {
+        group_id: 1001,
+        album_id: 'album_001',
+        attach_info: undefined,
+      },
+    )
+  })
+
+  it('delGroupAlbumMedia 删除群相册媒体', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.delGroupAlbumMedia(1001, 'album_001', 'lloc_abc')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('del_group_album_media', {
+      group_id: 1001,
+      album_id: 'album_001',
+      lloc: 'lloc_abc',
+    })
+  })
+
+  it('setGroupAlbumMediaLike 点赞群相册媒体', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.setGroupAlbumMediaLike(1001, 'album_001', 'batch_001', 'lloc_abc')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
+      'set_group_album_media_like',
+      {
+        group_id: 1001,
+        album_id: 'album_001',
+        batch_id: 'batch_001',
+        lloc: 'lloc_abc',
+      },
+    )
+  })
+
+  it('cancelGroupAlbumMediaLike 取消点赞群相册媒体', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.cancelGroupAlbumMediaLike(1001, 'album_001', 'batch_001')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
+      'cancel_group_album_media_like',
+      {
+        group_id: 1001,
+        album_id: 'album_001',
+        batch_id: 'batch_001',
+        lloc: undefined,
+      },
+    )
+  })
+
+  it('doGroupAlbumComment 发表群相册评论', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.doGroupAlbumComment(1001, 'album_001', 'lloc_abc', '好照片！')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('do_group_album_comment', {
+      group_id: 1001,
+      album_id: 'album_001',
+      lloc: 'lloc_abc',
+      content: '好照片！',
+    })
+  })
+
+  it('uploadImageToQunAlbum 上传图片到群相册', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.uploadImageToQunAlbum(1001, 'album_001', '旅行相册', '/path/photo.jpg')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
+      'upload_image_to_qun_album',
+      {
+        group_id: 1001,
+        album_id: 'album_001',
+        album_name: '旅行相册',
+        file: '/path/photo.jpg',
+      },
+    )
+  })
+
+  it('setGroupTodo 设置群待办', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.setGroupTodo(1001, 'msg_001', 'seq_001')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('set_group_todo', {
+      group_id: 1001,
+      message_id: 'msg_001',
+      message_seq: 'seq_001',
+    })
+  })
+
+  it('completeGroupTodo 完成群待办', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.completeGroupTodo(1001, 'msg_002', 'seq_002')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('complete_group_todo', {
+      group_id: 1001,
+      message_id: 'msg_002',
+      message_seq: 'seq_002',
+    })
+  })
+
+  it('cancelGroupTodo 取消群待办', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.cancelGroupTodo(1001, 'msg_003', 'seq_003')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('cancel_group_todo', {
+      group_id: 1001,
+      message_id: 'msg_003',
+      message_seq: 'seq_003',
+    })
+  })
+
+  it('setGroupAddOption 设置群加群选项', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.setGroupAddOption(1001, 2, '问题', '答案')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('set_group_add_option', {
+      group_id: 1001,
+      add_type: 2,
+      group_question: '问题',
+      group_answer: '答案',
+    })
+  })
+
+  it('setGroupRobotAddOption 设置群机器人加群选项', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.setGroupRobotAddOption(1001, 1, 1)
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
+      'set_group_robot_add_option',
+      {
+        group_id: 1001,
+        robot_member_switch: 1,
+        robot_member_examine: 1,
+      },
+    )
+  })
+
+  it('setGroupSearch 设置群搜索选项', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.setGroupSearch(1001, true, false)
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('set_group_search', {
+      group_id: 1001,
+      no_code_finger_open: true,
+      no_finger_open: false,
+    })
+  })
+
+  it('setGroupKickMembers 批量踢出群成员', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.setGroupKickMembers(1001, [9998, 9999])
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('set_group_kick_members', {
+      group_id: 1001,
+      user_id: [9998, 9999],
+    })
   })
 })

@@ -48,6 +48,7 @@ describe('系统 API', () => {
     await api.getStrangerInfo(9999)
     expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('get_stranger_info', {
       user_id: 9999,
+      no_cache: undefined,
     })
   })
   it('cleanCache 清理缓存', async () => {
@@ -96,10 +97,11 @@ describe('系统 API', () => {
   it('setQQProfile 设置 QQ 资料卡', async () => {
     const client = mockClient()
     const api = new SystemApi(client)
-    await api.setQQProfile({ nickname: '新昵称', personal_note: '签名' })
+    await api.setQQProfile('新昵称', '签名')
     expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('set_qq_profile', {
       nickname: '新昵称',
       personal_note: '签名',
+      sex: undefined,
     })
   })
   it('setQQAvatar 设置 QQ 头像', async () => {
@@ -157,10 +159,8 @@ describe('系统 API', () => {
   it('setModelShow 设置展示机型', async () => {
     const client = mockClient()
     const api = new SystemApi(client)
-    await api.setModelShow('iPhone 15 Pro Max')
-    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('_set_model_show', {
-      model: 'iPhone 15 Pro Max',
-    })
+    await api.setModelShow()
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('_set_model_show', {})
   })
   it('getOnlineClients 获取在线客户端', async () => {
     const client = mockClient([])
@@ -194,13 +194,13 @@ describe('系统 API', () => {
     await api.getDoubtFriendsAddRequest()
     expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
       'get_doubt_friends_add_request',
-      {},
+      { count: undefined },
     )
   })
   it('setDoubtFriendsAddRequest 处理存疑好友请求', async () => {
     const client = mockClient()
     const api = new SystemApi(client)
-    await api.setDoubtFriendsAddRequest({ flag: 'abc', approve: true })
+    await api.setDoubtFriendsAddRequest('abc', true)
     expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
       'set_doubt_friends_add_request',
       {
@@ -208,5 +208,14 @@ describe('系统 API', () => {
         approve: true,
       },
     )
+  })
+
+  // ── 4.18.6 新增系统端点测试 ──
+
+  it('setRestart 重启服务', async () => {
+    const client = mockClient()
+    const api = new SystemApi(client)
+    await api.setRestart()
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('set_restart', {})
   })
 })
