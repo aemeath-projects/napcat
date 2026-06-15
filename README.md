@@ -94,7 +94,3 @@ Seg.reply(messageId)
 Seg.face(1)
 // ...更多见 Seg 类型定义
 ```
-
-## 许可证
-
-MIT
