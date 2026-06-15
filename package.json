@@ -14,8 +14,8 @@
   },
   "packageManager": "pnpm@11.6.0",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" \"*.ts\"",
     "lint:fix": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" \"*.ts\" --fix",
     "format": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
@@ -31,7 +31,7 @@
     "bump:major": "commit-and-tag-version --release-as major",
     "changelog": "commit-and-tag-version --skip.bump --skip.commit --skip.tag",
     "commit": "cz",
-    "prepublishOnly": "pnpm lint && pnpm run test && pnpm run build",
+    "prepublishOnly": "pnpm lint && pnpm type-check && pnpm run test && pnpm run build",
     "prepare": "husky"
   },
   "keywords": [
@@ -116,6 +116,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.0.7",
     "prettier": "^3.8.4",
+    "tsup": "^8.5.1",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.61.0",
     "vitest": "^4.1.8"

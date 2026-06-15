@@ -1,0 +1,35 @@
+import { defineConfig } from 'tsup'
+
+export default defineConfig({
+  entry: [
+    'src/main.ts',
+    'src/core/index.ts',
+    'src/transport/index.ts',
+    'src/transport/http.ts',
+    'src/transport/interface.ts',
+    'src/transport/message.ts',
+    'src/transport/reconnect.ts',
+    'src/transport/reverse-ws.ts',
+    'src/transport/sse.ts',
+    'src/transport/ws.ts',
+    'src/api/index.ts',
+    'src/api/base.ts',
+    'src/api/extension.ts',
+    'src/api/file.ts',
+    'src/api/friend.ts',
+    'src/api/group.ts',
+    'src/api/message.ts',
+    'src/api/system.ts',
+    'src/types/index.ts',
+    'src/utils/index.ts',
+  ],
+  outDir: 'dist',
+  format: 'esm',
+  dts: {
+    resolve: false,
+  },
+  sourcemap: true,
+  minify: true,
+  clean: true,
+  splitting: false,
+})

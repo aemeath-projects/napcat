@@ -9,5 +9,7 @@ export default defineConfig({
       include: ['src/**'],
       thresholds: { functions: 80, lines: 80 },
     },
+    reporters: ['default', 'junit'],
+    outputFile: { junit: './test-results/junit.xml' },
   },
 })
