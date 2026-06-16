@@ -2,6 +2,8 @@
 
 所有版本变更记录
 
+## [1.1.2](https://github.com/aemeath-projects/napcat/compare/v1.1.1...v1.1.2) (2026-06-16)
+
 ## [1.1.1](https://github.com/aemeath-projects/napcat/compare/v1.1.0...v1.1.1) (2026-06-15)
 
 
