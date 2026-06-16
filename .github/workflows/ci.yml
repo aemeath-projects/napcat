@@ -6,6 +6,9 @@ on:
     branches: [master]
   workflow_dispatch:
 
+env:
+  PNPM_MINIMUM_RELEASE_AGE: ${{ vars.PNPM_MINIMUM_RELEASE_AGE }}
+
 jobs:
   ci:
     name: CI
