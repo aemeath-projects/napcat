@@ -203,7 +203,7 @@ describe('ReverseWebSocketTransport 反向 WebSocket 传输', () => {
       self_id: 0,
     })
     const event = await eventPromise
-    expect((event as Record<string, unknown>).post_type).toBe('meta_event')
+    expect((event as Record<string, unknown>).postType).toBe('meta_event')
   })
 
   it('disconnect() 关闭服务器', async () => {

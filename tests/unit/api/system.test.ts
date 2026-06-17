@@ -123,7 +123,7 @@ describe('系统 API', () => {
     const api = new SystemApi(client)
     await api.setSelfLongnick('个性签名')
     expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('set_self_longnick', {
-      longNick: '个性签名',
+      long_nick: '个性签名',
     })
   })
   it('getCredentials 获取凭据', async () => {

@@ -27,7 +27,7 @@ import type {
 } from '../types'
 
 /** 消息段构建工厂。每个方法返回对应类型的消息段对象。 */
-export const Seg = {
+export const seg = {
   /** 构建纯文本消息段。 */
   text(text: string): TextSegment {
     return { type: 'text', data: { text } }

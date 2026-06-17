@@ -59,7 +59,7 @@ describe('NapCat 客户端', () => {
 
     await new Promise((r) => setTimeout(r, 20))
     expect(spy).toHaveBeenCalledTimes(1)
-    expect(spy.mock.calls[0][0].message_type).toBe('group')
+    expect(spy.mock.calls[0][0].messageType).toBe('group')
   })
 
   it('所有消息分发到 message 事件', async () => {

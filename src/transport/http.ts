@@ -3,9 +3,10 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 
 import { TypedEventEmitter, ConnectionError } from '../core'
 import type { ApiResponse, OneBotEvent, TransportEventMap } from '../types'
+import { snakeToCamel } from '../utils'
 
 import { apiCall } from './http-client.js'
-import type { ITransport, TransportState } from './interface.js'
+import type { Transport, TransportState } from './interface.js'
 
 /** Event server 监听配置。 */
 export interface HttpEventServerOptions {
@@ -28,7 +29,7 @@ export interface HttpTransportOptions {
 }
 
 /** HTTP Transport：API 调用用 HTTP POST，事件接收用内置 HTTP server。 */
-export class HttpTransport extends TypedEventEmitter<TransportEventMap> implements ITransport {
+export class HttpTransport extends TypedEventEmitter<TransportEventMap> implements Transport {
   private readonly _apiBaseUrl: string
   private readonly _token: string | undefined
   private readonly _eventHost: string
@@ -162,7 +163,7 @@ export class HttpTransport extends TypedEventEmitter<TransportEventMap> implemen
     })
     req.on('end', () => {
       try {
-        const event = JSON.parse(body) as OneBotEvent
+        const event = snakeToCamel(JSON.parse(body)) as OneBotEvent
         this.emit('event', event)
       } catch {
         // JSON 解析失败，忽略该事件

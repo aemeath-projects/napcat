@@ -17,20 +17,17 @@ export class MessageApi extends BaseApi {
   sendPrivateMsg(
     userId: number,
     message: MessageSegment[],
-  ): Promise<Result<{ message_id: number }>> {
+  ): Promise<Result<{ messageId: number }>> {
     return this.invoke('send_private_msg', { user_id: userId, message })
   }
 
   /** 发送群聊消息。 */
-  sendGroupMsg(
-    groupId: number,
-    message: MessageSegment[],
-  ): Promise<Result<{ message_id: number }>> {
+  sendGroupMsg(groupId: number, message: MessageSegment[]): Promise<Result<{ messageId: number }>> {
     return this.invoke('send_group_msg', { group_id: groupId, message })
   }
 
   /** 发送消息（通用）。 */
-  sendMsg(params: SendMsgParams): Promise<Result<{ message_id: number }>> {
+  sendMsg(params: SendMsgParams): Promise<Result<{ messageId: number }>> {
     return this.invoke('send_msg', params)
   }
 
@@ -53,7 +50,7 @@ export class MessageApi extends BaseApi {
   sendGroupForwardMsg(
     groupId: number,
     nodes: ForwardNode[],
-  ): Promise<Result<{ message_id: number }>> {
+  ): Promise<Result<{ messageId: number }>> {
     return this.invoke('send_group_forward_msg', { group_id: groupId, messages: nodes })
   }
 
@@ -61,12 +58,12 @@ export class MessageApi extends BaseApi {
   sendPrivateForwardMsg(
     userId: number,
     nodes: ForwardNode[],
-  ): Promise<Result<{ message_id: number }>> {
+  ): Promise<Result<{ messageId: number }>> {
     return this.invoke('send_private_forward_msg', { user_id: userId, messages: nodes })
   }
 
   /** 发送合并转发（通用）。 */
-  sendForwardMsg(nodes: ForwardNode[]): Promise<Result<{ message_id: number }>> {
+  sendForwardMsg(nodes: ForwardNode[]): Promise<Result<{ messageId: number }>> {
     return this.invoke('send_forward_msg', { messages: nodes })
   }
 

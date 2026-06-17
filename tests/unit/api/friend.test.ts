@@ -112,8 +112,8 @@ describe('好友 API', () => {
     await api.fetchEmojiLike(12345, '128514', 1, 20)
     expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('fetch_emoji_like', {
       message_id: 12345,
-      emojiId: '128514',
-      emojiType: 1,
+      emoji_id: '128514',
+      emoji_type: 1,
       count: 20,
       cookie: undefined,
     })

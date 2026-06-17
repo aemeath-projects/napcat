@@ -1,11 +1,10 @@
 import eslint from '@eslint/js'
+import { defineConfig } from 'eslint/config'
 import prettier from 'eslint-config-prettier'
 import importPlugin from 'eslint-plugin-import-x'
 import tseslint from 'typescript-eslint'
 
-// tseslint.config 在类型层面标记为 deprecated（建议改 defineConfig），但当前版本无此导出，忽略该警告
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-export default tseslint.config(
+export default defineConfig(
   { ignores: ['dist/', 'node_modules/', '**/*.js', '**/*.cjs', '**/*.mjs'] },
   eslint.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
@@ -39,6 +38,37 @@ export default tseslint.config(
     },
   },
   {
+    rules: {
+      '@typescript-eslint/naming-convention': [
+        'error',
+        // 类型
+        { selector: 'typeParameter', format: ['PascalCase'] },
+        { selector: 'class', format: ['PascalCase'] },
+        { selector: 'interface', format: ['PascalCase'], custom: { regex: '^I[A-Z]', match: false } },
+        { selector: 'typeAlias', format: ['PascalCase'] },
+        { selector: 'enum', format: ['PascalCase'] },
+        { selector: 'enumMember', format: ['PascalCase'] },
+        // 函数 / 方法
+        { selector: 'function', format: ['camelCase'] },
+        { selector: 'method', format: ['camelCase'] },
+        { selector: 'method', modifiers: ['private'], format: ['camelCase'], leadingUnderscore: 'require' },
+        { selector: 'method', modifiers: ['requiresQuotes'], format: null },
+        { selector: 'accessor', format: ['camelCase'] },
+        // ── 参数 ──
+        { selector: 'parameter', format: ['camelCase'], leadingUnderscore: 'allow' },
+        // ── 变量 ──
+        { selector: 'variable', format: ['camelCase'] },
+        { selector: 'variable', modifiers: ['const'], format: ['camelCase', 'UPPER_CASE'] },
+        // ── 属性 ──
+        { selector: 'property', format: ['camelCase'] },
+        { selector: 'property', modifiers: ['private'], format: ['camelCase'], leadingUnderscore: 'require' },
+        { selector: 'property', modifiers: ['requiresQuotes'], format: null },
+        // ── 对象字面量属性（放行 snake_case API 参数）──
+        { selector: 'objectLiteralProperty', format: null },
+      ],
+    },
+  },
+  {
     files: ['tests/**/*.ts'],
     rules: {
       '@typescript-eslint/no-unsafe-assignment': 'off',
@@ -57,6 +87,10 @@ export default tseslint.config(
       '@typescript-eslint/no-confusing-void-expression': 'off',
       '@typescript-eslint/consistent-generic-constructors': 'off',
       '@typescript-eslint/no-unused-expressions': 'off',
+      '@typescript-eslint/naming-convention': [
+        'error',
+        { selector: 'variable', modifiers: ['destructured'], format: null },
+      ],
     },
   },
   prettier,

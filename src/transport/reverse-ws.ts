@@ -7,7 +7,7 @@ import { WebSocketServer, WebSocket, type RawData } from 'ws'
 import { TypedEventEmitter, TransportError, TimeoutError } from '../core'
 import type { ApiResponse, TransportEventMap } from '../types'
 
-import type { ITransport, TransportState } from './interface.js'
+import type { Transport, TransportState } from './interface.js'
 import { handleIncomingMessage, type PendingCall } from './message.js'
 
 /** ReverseWebSocketTransport 构造参数。 */
@@ -29,7 +29,7 @@ export interface ReverseWebSocketTransportOptions {
 /** 反向 WebSocket Transport：SDK 启动 WS server，NapCat 主动连接进来。 */
 export class ReverseWebSocketTransport
   extends TypedEventEmitter<TransportEventMap>
-  implements ITransport
+  implements Transport
 {
   private _state: TransportState = 'disconnected'
   private _httpServer: ReturnType<typeof createServer> | null = null

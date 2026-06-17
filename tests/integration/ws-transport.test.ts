@@ -52,7 +52,7 @@ describe('WebSocketTransport WebSocket 传输', () => {
       self_id: 0,
     })
     const event = await eventPromise
-    expect((event as Record<string, unknown>).post_type).toBe('meta_event')
+    expect((event as Record<string, unknown>).postType).toBe('meta_event')
   })
 
   it('未收到响应时 call() 超时', async () => {

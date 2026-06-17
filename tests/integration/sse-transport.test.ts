@@ -39,7 +39,7 @@ describe('SseTransport SSE 传输', () => {
       self_id: 0,
     })
     const event = await eventPromise
-    expect((event as Record<string, unknown>).post_type).toBe('meta_event')
+    expect((event as Record<string, unknown>).postType).toBe('meta_event')
   })
 
   it('call() 发送 POST 请求', async () => {

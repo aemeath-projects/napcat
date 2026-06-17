@@ -1,6 +1,6 @@
 import type { EventEmitter } from 'node:events'
 
-import type { ITransport } from '../transport'
+import type { Transport } from '../transport'
 import type { ApiResponse, OneBotEvent, ClientEventMap } from '../types'
 
 import { TypedEventEmitter } from './emitter.js'
@@ -10,7 +10,7 @@ const HIERARCHICAL_POST_TYPES = new Set(['message', 'notice', 'request', 'meta_e
 
 /** NapCat SDK 主客户端。薄壳，负责 Transport 代理和事件分发。 */
 export class NapCatClient extends TypedEventEmitter<ClientEventMap> {
-  constructor(public readonly transport: ITransport) {
+  constructor(public readonly transport: Transport) {
     super()
     this._setupEventForwarding()
   }
@@ -45,22 +45,22 @@ export class NapCatClient extends TypedEventEmitter<ClientEventMap> {
     )
 
     this.transport.on('event', (raw: OneBotEvent) => {
-      if (HIERARCHICAL_POST_TYPES.has(raw.post_type)) {
+      if (HIERARCHICAL_POST_TYPES.has(raw.postType)) {
         // 从对应字段读取子类型键
         const subKey =
-          (raw.message_type as string | undefined) ??
-          (raw.notice_type as string | undefined) ??
-          (raw.request_type as string | undefined) ??
-          (raw.meta_event_type as string | undefined)
+          (raw.messageType as string | undefined) ??
+          (raw.noticeType as string | undefined) ??
+          (raw.requestType as string | undefined) ??
+          (raw.metaEventType as string | undefined)
 
         if (subKey) {
           // 动态事件名无法通过 TypedEventEmitter 的静态类型检查，通过父类原型绕过类型约束
-          ;(this as unknown as EventEmitter).emit(`${raw.post_type}.${subKey}`, raw)
+          ;(this as unknown as EventEmitter).emit(`${raw.postType}.${subKey}`, raw)
         }
       }
 
       // 始终触发顶层事件（message / notice / request / meta_event / message_sent）
-      ;(this as unknown as EventEmitter).emit(raw.post_type, raw)
+      ;(this as unknown as EventEmitter).emit(raw.postType, raw)
     })
   }
 }

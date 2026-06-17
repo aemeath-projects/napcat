@@ -5,7 +5,7 @@ import type { ApiResponse, TransportEventMap } from '../types'
 export type TransportState = 'disconnected' | 'connecting' | 'connected'
 
 /** Transport 统一接口，继承 TypedEventEmitter 以获得类型安全的事件机制。 */
-export interface ITransport extends TypedEventEmitter<TransportEventMap> {
+export interface Transport extends TypedEventEmitter<TransportEventMap> {
   readonly state: TransportState
   connect(): Promise<void>
   disconnect(): Promise<void>

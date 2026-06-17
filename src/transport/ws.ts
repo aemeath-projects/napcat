@@ -6,7 +6,7 @@ import { WebSocket } from 'ws'
 import { TypedEventEmitter, TransportError, TimeoutError } from '../core'
 import type { ApiResponse, TransportEventMap } from '../types'
 
-import type { ITransport, TransportState } from './interface.js'
+import type { Transport, TransportState } from './interface.js'
 import { handleIncomingMessage, type PendingCall } from './message.js'
 import { ReconnectPolicy, type ReconnectOptions } from './reconnect.js'
 
@@ -30,7 +30,7 @@ export interface WebSocketTransportOptions {
 /** 正向 WebSocket Transport：客户端主动连接 NapCat。 */
 export class WebSocketTransport
   extends TypedEventEmitter<WsTransportEventMap>
-  implements ITransport
+  implements Transport
 {
   private readonly _url: string
   private readonly _token: string | undefined

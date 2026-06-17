@@ -158,23 +158,23 @@ export class FileApi extends BaseApi {
 
   /** 上传文件流。 */
   uploadFileStream(params: {
-    stream_id: string
-    file_retention: number
-    chunk_data?: string
-    chunk_index?: number
-    total_chunks?: number
-    file_size?: number
-    expected_sha256?: string
-    is_complete?: boolean
+    streamId: string
+    fileRetention: number
+    chunkData?: string
+    chunkIndex?: number
+    totalChunks?: number
+    fileSize?: number
+    expectedSha256?: string
+    isComplete?: boolean
     filename?: string
     reset?: boolean
-    verify_only?: boolean
+    verifyOnly?: boolean
   }): Promise<Result<void>> {
     return this.invoke('upload_file_stream', params)
   }
 
   /** 获取文件集 ID。 */
-  getFilesetId(shareCode: string): Promise<Result<{ fileset_id: string }>> {
+  getFilesetId(shareCode: string): Promise<Result<{ filesetId: string }>> {
     return this.invoke('get_fileset_id', { share_code: shareCode })
   }
 

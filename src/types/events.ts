@@ -9,64 +9,64 @@ import type { MessageSegment } from './segments.js'
 
 /** 消息事件基类。 */
 export interface MessageEvent extends OneBotEvent {
-  post_type: 'message'
-  message_type: string
-  sub_type: string
-  message_id: number
-  user_id: number
+  postType: 'message'
+  messageType: string
+  subType: string
+  messageId: number
+  userId: number
   message: MessageSegment[] | string
-  raw_message: string
+  rawMessage: string
   font: number
   sender: Sender
 }
 
 /** 私聊（好友）消息事件。 */
 export interface PrivateMessageEvent extends MessageEvent {
-  message_type: 'private'
-  sub_type: string // friend | group | other（好友 | 群临时 | 其他）
-  target_id?: number | null
-  temp_source?: number | null
+  messageType: 'private'
+  subType: string // friend | group | other（好友 | 群临时 | 其他）
+  targetId?: number | null
+  tempSource?: number | null
 }
 
 /** 群消息事件。 */
 export interface GroupMessageEvent extends MessageEvent {
-  message_type: 'group'
-  sub_type: string // normal | anonymous | notice（普通 | 匿名 | 通知）
-  group_id: number
+  messageType: 'group'
+  subType: string // normal | anonymous | notice（普通 | 匿名 | 通知）
+  groupId: number
   anonymous?: Anonymous | null
 }
 
-/** 机器人自发消息事件（NapCat 扩展，post_type=message_sent）。 */
+/** 机器人自发消息事件（NapCat 扩展，postType=message_sent）。 */
 export interface MessageSentEvent extends OneBotEvent {
-  post_type: 'message_sent'
-  message_type: string
-  sub_type: string
-  message_id: number
-  user_id: number
+  postType: 'message_sent'
+  messageType: string
+  subType: string
+  messageId: number
+  userId: number
   message: MessageSegment[] | string
-  raw_message: string
+  rawMessage: string
   font: number
   sender: Sender
-  target_id: number
+  targetId: number
 }
 
 // ── 元事件 ──
 
 /** 元事件基类。 */
 export interface MetaEvent extends OneBotEvent {
-  post_type: 'meta_event'
-  meta_event_type: string
+  postType: 'meta_event'
+  metaEventType: string
 }
 
 /** 生命周期事件（NapCat 中仅有 connect）。 */
 export interface LifecycleEvent extends MetaEvent {
-  meta_event_type: 'lifecycle'
-  sub_type: string
+  metaEventType: 'lifecycle'
+  subType: string
 }
 
 /** 心跳事件。 */
 export interface HeartbeatEvent extends MetaEvent {
-  meta_event_type: 'heartbeat'
+  metaEventType: 'heartbeat'
   status: HeartbeatStatus
   interval: number
 }
@@ -75,162 +75,162 @@ export interface HeartbeatEvent extends MetaEvent {
 
 /** 通知事件基类。 */
 export interface NoticeEvent extends OneBotEvent {
-  post_type: 'notice'
-  notice_type: string
-  sub_type?: string // 部分通知事件（如 bot_offline）无此字段
+  postType: 'notice'
+  noticeType: string
+  subType?: string // 部分通知事件（如 bot_offline）无此字段
 }
 
 /** 好友添加通知。 */
 export interface FriendAddNotice extends NoticeEvent {
-  notice_type: 'friend_add'
-  user_id: number
+  noticeType: 'friend_add'
+  userId: number
 }
 
 /** 好友消息撤回通知。 */
 export interface FriendRecallNotice extends NoticeEvent {
-  notice_type: 'friend_recall'
-  user_id: number
-  message_id: number
+  noticeType: 'friend_recall'
+  userId: number
+  messageId: number
 }
 
 /** 群文件上传通知。 */
 export interface GroupUploadNotice extends NoticeEvent {
-  notice_type: 'group_upload'
-  group_id: number
-  user_id: number
+  noticeType: 'group_upload'
+  groupId: number
+  userId: number
   file: Record<string, unknown>
 }
 
 /** 群管理员变更通知。 */
 export interface GroupAdminNotice extends NoticeEvent {
-  notice_type: 'group_admin'
-  sub_type: string // set | unset（设置 | 取消）
-  group_id: number
-  user_id: number
+  noticeType: 'group_admin'
+  subType: string // set | unset（设置 | 取消）
+  groupId: number
+  userId: number
 }
 
 /** 群成员减少通知。 */
 export interface GroupDecreaseNotice extends NoticeEvent {
-  notice_type: 'group_decrease'
-  sub_type: string // leave | kick | kick_me | disband（退群 | 被踢 | 号被踢 | 解散）
-  group_id: number
-  user_id: number
-  operator_id: number
+  noticeType: 'group_decrease'
+  subType: string // leave | kick | kick_me | disband（退群 | 被踢 | 号被踢 | 解散）
+  groupId: number
+  userId: number
+  operatorId: number
 }
 
 /** 群成员增加通知。 */
 export interface GroupIncreaseNotice extends NoticeEvent {
-  notice_type: 'group_increase'
-  sub_type: string // approve | invite（同意 | 邀请）
-  group_id: number
-  user_id: number
-  operator_id: number
+  noticeType: 'group_increase'
+  subType: string // approve | invite（同意 | 邀请）
+  groupId: number
+  userId: number
+  operatorId: number
 }
 
 /** 群禁言通知。 */
 export interface GroupBanNotice extends NoticeEvent {
-  notice_type: 'group_ban'
-  sub_type: string // ban | lift_ban（禁言 | 解禁）
-  group_id: number
-  user_id: number
-  operator_id: number
+  noticeType: 'group_ban'
+  subType: string // ban | lift_ban（禁言 | 解禁）
+  groupId: number
+  userId: number
+  operatorId: number
   duration: number
 }
 
 /** 群消息撤回通知。 */
 export interface GroupRecallNotice extends NoticeEvent {
-  notice_type: 'group_recall'
-  group_id: number
-  user_id: number
-  operator_id: number
-  message_id: number
+  noticeType: 'group_recall'
+  groupId: number
+  userId: number
+  operatorId: number
+  messageId: number
 }
 
 /** 群名片变更通知。 */
 export interface GroupCardNotice extends NoticeEvent {
-  notice_type: 'group_card'
-  group_id: number
-  user_id: number
-  card_new: string
-  card_old: string
+  noticeType: 'group_card'
+  groupId: number
+  userId: number
+  cardNew: string
+  cardOld: string
 }
 
 /** 精华消息通知。 */
 export interface EssenceNotice extends NoticeEvent {
-  notice_type: 'essence'
-  sub_type: string // add | delete（加精 | 取消）
-  group_id: number
-  message_id: number
-  sender_id: number
-  operator_id: number
+  noticeType: 'essence'
+  subType: string // add | delete（加精 | 取消）
+  groupId: number
+  messageId: number
+  senderId: number
+  operatorId: number
 }
 
 /** 群消息表情回应通知。 */
 export interface GroupMsgEmojiLikeNotice extends NoticeEvent {
-  notice_type: 'group_msg_emoji_like'
-  group_id: number
-  user_id: number
-  message_id: number
+  noticeType: 'group_msg_emoji_like'
+  groupId: number
+  userId: number
+  messageId: number
   likes: Record<string, unknown>[]
 }
 
 /** 通知子类型事件（戳一戳、群名称、头衔等）。 */
 export interface NotifyEvent extends NoticeEvent {
-  notice_type: 'notify'
-  sub_type: string
-  group_id?: number | null
-  user_id: number
-  target_id?: number | null
+  noticeType: 'notify'
+  subType: string
+  groupId?: number | null
+  userId: number
+  targetId?: number | null
 }
 
 /** 戳一戳通知。 */
 export interface PokeNotify extends NotifyEvent {
-  sub_type: 'poke'
-  raw_info?: Record<string, unknown> | null
+  subType: 'poke'
+  rawInfo?: Record<string, unknown> | null
 }
 
 /** 群名称变更通知。 */
 export interface GroupNameNotify extends NotifyEvent {
-  sub_type: 'group_name'
-  name_new: string
+  subType: 'group_name'
+  nameNew: string
 }
 
 /** 群头衔变更通知。 */
 export interface TitleNotify extends NotifyEvent {
-  sub_type: 'title'
+  subType: 'title'
   title: string
 }
 
 /** 名片点赞通知。 */
 export interface ProfileLikeNotify extends NotifyEvent {
-  sub_type: 'profile_like'
-  operator_id: number
-  operator_nick: string
+  subType: 'profile_like'
+  operatorId: number
+  operatorNick: string
   times: number
 }
 
 /** 输入状态通知。 */
 export interface InputStatusNotify extends NotifyEvent {
-  sub_type: 'input_status'
-  status_text: string
-  event_type: number
+  subType: 'input_status'
+  statusText: string
+  eventType: number
 }
 
 /** 群灰条消息通知（NapCat 扩展）。 */
 export interface GrayTipNotify extends NotifyEvent {
-  sub_type: 'gray_tip'
-  group_id?: number | null
-  user_id: number
-  message_id: number
-  busi_id: string
+  subType: 'gray_tip'
+  groupId?: number | null
+  userId: number
+  messageId: number
+  busiId: string
   content: string
-  raw_info?: Record<string, unknown> | null
+  rawInfo?: Record<string, unknown> | null
 }
 
 /** 机器人下线通知。 */
 export interface BotOfflineNotice extends NoticeEvent {
-  notice_type: 'bot_offline'
-  user_id: number
+  noticeType: 'bot_offline'
+  userId: number
   tag: string
   message: string
 }
@@ -239,23 +239,23 @@ export interface BotOfflineNotice extends NoticeEvent {
 
 /** 请求事件基类。 */
 export interface RequestEvent extends OneBotEvent {
-  post_type: 'request'
-  request_type: string
-  user_id: number
+  postType: 'request'
+  requestType: string
+  userId: number
   comment: string
   flag: string
 }
 
 /** 好友添加请求。 */
 export interface FriendRequestEvent extends RequestEvent {
-  request_type: 'friend'
+  requestType: 'friend'
 }
 
 /** 入群请求。 */
 export interface GroupRequestEvent extends RequestEvent {
-  request_type: 'group'
-  sub_type: string // add | invite（添加 | 邀请）
-  group_id: number
+  requestType: 'group'
+  subType: string // add | invite（添加 | 邀请）
+  groupId: number
 }
 
 /** 所有已知事件类型的联合类型。 */
@@ -320,6 +320,7 @@ export interface ClientEventMap {
   message: (event: PrivateMessageEvent | GroupMessageEvent) => void
   'message.private': (event: PrivateMessageEvent) => void
   'message.group': (event: GroupMessageEvent) => void
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   message_sent: (event: MessageSentEvent) => void
 
   notice: (event: AnyNoticeEvent) => void
@@ -341,6 +342,7 @@ export interface ClientEventMap {
   'request.friend': (event: FriendRequestEvent) => void
   'request.group': (event: GroupRequestEvent) => void
 
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   meta_event: (event: LifecycleEvent | HeartbeatEvent) => void
   'meta_event.lifecycle': (event: LifecycleEvent) => void
   'meta_event.heartbeat': (event: HeartbeatEvent) => void

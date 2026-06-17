@@ -44,7 +44,7 @@ describe('handleIncomingMessage 消息处理', () => {
       emit,
     )
 
-    expect(emit).toHaveBeenCalledWith('event', expect.objectContaining({ post_type: 'meta_event' }))
+    expect(emit).toHaveBeenCalledWith('event', expect.objectContaining({ postType: 'meta_event' }))
   })
 
   it('echo 存在但 pending 中无对应条目时静默返回（过时响应）', () => {

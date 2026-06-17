@@ -1,4 +1,4 @@
-export type { ITransport, TransportState } from './interface.js'
+export type { Transport, TransportState } from './interface.js'
 export type { PendingCall } from './message.js'
 export { ReconnectPolicy, type ReconnectOptions } from './reconnect.js'
 export {

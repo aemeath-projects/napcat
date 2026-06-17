@@ -1,4 +1,5 @@
 import type { ApiResponse, OneBotEvent } from '../types'
+import { snakeToCamel } from '../utils'
 
 /** 等待中的 API 调用信息，供 Transport 实现复用。 */
 export interface PendingCall {
@@ -34,8 +35,8 @@ export function handleIncomingMessage(
     return
   }
 
-  // 有 post_type → OneBot 事件推送
+  // 有 post_type → OneBot 事件推送（先判断 wire 字段，再转 camelCase 后 emit）
   if (typeof data.post_type === 'string') {
-    emit('event', data as unknown as OneBotEvent)
+    emit('event', snakeToCamel(data) as unknown as OneBotEvent)
   }
 }

@@ -2,5 +2,6 @@
  * utils 子包聚合导出。
  */
 
-export { Seg, extractPlaintext } from './segment.js'
+export { seg, extractPlaintext } from './segment.js'
 export * from './guards.js'
+export { snakeToCamel, camelToSnake } from './convert.js'

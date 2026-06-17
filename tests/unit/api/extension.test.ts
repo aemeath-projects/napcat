@@ -131,7 +131,7 @@ describe('拓展 API', () => {
     const api = new ExtensionApi(client)
     await api.createCollection('raw_data', '收藏简要')
     expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('create_collection', {
-      rawData: 'raw_data',
+      raw_data: 'raw_data',
       brief: '收藏简要',
     })
   })
@@ -196,8 +196,8 @@ describe('拓展 API', () => {
     await api.addCustomFace('/path/img.png', { emojiId: '123', packageId: 'pkg_001' })
     expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('add_custom_face', {
       file: '/path/img.png',
-      emojiId: '123',
-      packageId: 'pkg_001',
+      emoji_id: '123',
+      package_id: 'pkg_001',
     })
   })
 
@@ -206,7 +206,7 @@ describe('拓展 API', () => {
     const api = new ExtensionApi(client)
     await api.deleteCustomFace({ resId: 'res_001', md5: 'md5_hash' })
     expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('delete_custom_face', {
-      resId: 'res_001',
+      res_id: 'res_001',
       md5: 'md5_hash',
     })
   })

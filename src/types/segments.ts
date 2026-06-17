@@ -17,8 +17,8 @@ export interface FaceSegment {
   data: {
     id: number
     raw?: string | null
-    result_id?: string | null
-    chain_count?: number | null
+    resultId?: string | null
+    chainCount?: number | null
     [key: string]: unknown
   }
 }
@@ -30,12 +30,12 @@ export interface ImageSegment {
     file: string
     name?: string | null
     summary?: string | null
-    sub_type?: number | null
-    file_id?: string | null
+    subType?: number | null
+    fileId?: string | null
     url?: string | null
     path?: string | null
-    file_size?: number | null
-    file_unique?: string | null
+    fileSize?: number | null
+    fileUnique?: string | null
     [key: string]: unknown
   }
 }
@@ -46,11 +46,11 @@ export interface RecordSegment {
   data: {
     file: string
     name?: string | null
-    file_id?: string | null
+    fileId?: string | null
     url?: string | null
     path?: string | null
-    file_size?: number | null
-    file_unique?: string | null
+    fileSize?: number | null
+    fileUnique?: string | null
     [key: string]: unknown
   }
 }
@@ -62,11 +62,11 @@ export interface VideoSegment {
     file: string
     name?: string | null
     thumb?: string | null
-    file_id?: string | null
+    fileId?: string | null
     url?: string | null
     path?: string | null
-    file_size?: number | null
-    file_unique?: string | null
+    fileSize?: number | null
+    fileUnique?: string | null
     [key: string]: unknown
   }
 }
@@ -103,8 +103,8 @@ export interface ForwardSegment {
 export interface MFaceSegment {
   type: 'mface'
   data: {
-    emoji_id?: string | null
-    emoji_package_id?: string | null
+    emojiId?: string | null
+    emojiPackageId?: string | null
     key?: string | null
     summary?: string | null
     [key: string]: unknown
@@ -145,9 +145,9 @@ export interface FileSegment {
   data: {
     file: string
     name?: string | null
-    file_id?: string | null
-    file_size?: number | null
-    file_unique?: string | null
+    fileId?: string | null
+    fileSize?: number | null
+    fileUnique?: string | null
     path?: string | null
     url?: string | null
     [key: string]: unknown
@@ -184,7 +184,7 @@ export interface NodeSegment {
   data: {
     id?: number | null
     content?: unknown[] | null
-    user_id?: number | null
+    userId?: number | null
     nickname?: string | null
     [key: string]: unknown
   }

@@ -92,7 +92,7 @@ describe('HttpTransport HTTP 传输', () => {
     })
 
     const event = await eventPromise
-    expect((event as Record<string, unknown>).post_type).toBe('meta_event')
+    expect((event as Record<string, unknown>).postType).toBe('meta_event')
   })
 
   it('disconnect() 停止事件服务器', async () => {
@@ -178,7 +178,7 @@ describe('HttpTransport HTTP 传输', () => {
     )
 
     const event = await eventPromise
-    expect((event as Record<string, unknown>).post_type).toBe('meta_event')
+    expect((event as Record<string, unknown>).postType).toBe('meta_event')
   })
 
   it('通过 query string access_token 传递 token 的事件请求鉴权成功', async () => {
@@ -205,6 +205,6 @@ describe('HttpTransport HTTP 传输', () => {
     })
 
     const event = await eventPromise
-    expect((event as Record<string, unknown>).post_type).toBe('meta_event')
+    expect((event as Record<string, unknown>).postType).toBe('meta_event')
   })
 })

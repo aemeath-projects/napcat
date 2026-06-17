@@ -18,7 +18,7 @@ export {
   type HttpTransportOptions,
   type HttpEventServerOptions,
 } from './transport/http.js'
-export type { ITransport, TransportState } from './transport/interface.js'
+export type { Transport, TransportState } from './transport/interface.js'
 export { ReconnectPolicy, type ReconnectOptions } from './transport/reconnect.js'
 export {
   ReverseWebSocketTransport,
@@ -37,5 +37,6 @@ export { SystemApi } from './api/system.js'
 export { ExtensionApi } from './api/extension.js'
 
 // 工具函数
-export { Seg, extractPlaintext } from './utils/segment.js'
+export { seg, extractPlaintext } from './utils/segment.js'
 export * from './utils/guards.js'
+export { snakeToCamel, camelToSnake } from './utils/convert.js'

@@ -1,9 +1,10 @@
 /** SSE Transport 实现：事件接收走 GET /_events SSE 连接，API 调用走 HTTP POST。 */
 import { TypedEventEmitter, TransportError } from '../core'
 import type { ApiResponse, OneBotEvent, TransportEventMap } from '../types'
+import { snakeToCamel } from '../utils'
 
 import { apiCall } from './http-client.js'
-import type { ITransport, TransportState } from './interface.js'
+import type { Transport, TransportState } from './interface.js'
 import { ReconnectPolicy, type ReconnectOptions } from './reconnect.js'
 
 /** SseTransport 扩展事件映射，增加 reconnecting 事件。 */
@@ -22,7 +23,7 @@ export interface SseTransportOptions {
 }
 
 /** SSE Transport：事件接收走 GET /_events，API 调用走 HTTP POST。 */
-export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implements ITransport {
+export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implements Transport {
   private _state: TransportState = 'disconnected'
   private _abortController: AbortController | null = null
   private _intentionalClose = false
@@ -119,7 +120,7 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
           if (line.startsWith('data: ')) {
             const raw = line.slice(6)
             try {
-              const event = JSON.parse(raw) as OneBotEvent
+              const event = snakeToCamel(JSON.parse(raw)) as OneBotEvent
               this.emit('event', event)
             } catch {
               // 忽略 JSON 解析失败的行

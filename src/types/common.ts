@@ -3,24 +3,24 @@
  */
 
 /** 上报类型枚举。 */
-export const PostType = {
+export const POST_TYPE = {
   message: 'message',
   messageSent: 'message_sent',
   notice: 'notice',
   request: 'request',
   metaEvent: 'meta_event',
 } as const
-export type PostType = (typeof PostType)[keyof typeof PostType]
+export type PostType = (typeof POST_TYPE)[keyof typeof POST_TYPE]
 
 /** 消息类型枚举。 */
-export const MessageType = {
+export const MESSAGE_TYPE = {
   private: 'private',
   group: 'group',
 } as const
-export type MessageType = (typeof MessageType)[keyof typeof MessageType]
+export type MessageType = (typeof MESSAGE_TYPE)[keyof typeof MESSAGE_TYPE]
 
 /** 通知类型枚举。 */
-export const NoticeType = {
+export const NOTICE_TYPE = {
   friendAdd: 'friend_add',
   friendRecall: 'friend_recall',
   groupUpload: 'group_upload',
@@ -35,33 +35,33 @@ export const NoticeType = {
   notify: 'notify',
   botOffline: 'bot_offline',
 } as const
-export type NoticeType = (typeof NoticeType)[keyof typeof NoticeType]
+export type NoticeType = (typeof NOTICE_TYPE)[keyof typeof NOTICE_TYPE]
 
 /** 请求类型枚举。 */
-export const RequestType = {
+export const REQUEST_TYPE = {
   friend: 'friend',
   group: 'group',
 } as const
-export type RequestType = (typeof RequestType)[keyof typeof RequestType]
+export type RequestType = (typeof REQUEST_TYPE)[keyof typeof REQUEST_TYPE]
 
 /** 元事件类型枚举。 */
-export const MetaEventType = {
+export const META_EVENT_TYPE = {
   lifecycle: 'lifecycle',
   heartbeat: 'heartbeat',
 } as const
-export type MetaEventType = (typeof MetaEventType)[keyof typeof MetaEventType]
+export type MetaEventType = (typeof META_EVENT_TYPE)[keyof typeof META_EVENT_TYPE]
 
 /** 群成员角色枚举。 */
-export const GroupRole = {
+export const GROUP_ROLE = {
   owner: 'owner',
   admin: 'admin',
   member: 'member',
 } as const
-export type GroupRole = (typeof GroupRole)[keyof typeof GroupRole]
+export type GroupRole = (typeof GROUP_ROLE)[keyof typeof GROUP_ROLE]
 
 /** 消息发送者信息。 */
 export interface Sender {
-  user_id?: number | null
+  userId?: number | null
   nickname?: string | null
   sex?: string | null
   age?: number | null
@@ -70,7 +70,7 @@ export interface Sender {
   title?: string | null
   level?: string | null
   area?: string | null
-  group_id?: number | null
+  groupId?: number | null
   [key: string]: unknown
 }
 
@@ -92,8 +92,8 @@ export interface HeartbeatStatus {
 /** OneBot 事件基础结构。 */
 export interface OneBotEvent {
   time: number
-  self_id: number
-  post_type: string
+  selfId: number
+  postType: string
   [key: string]: unknown
 }
 
