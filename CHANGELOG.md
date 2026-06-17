@@ -2,6 +2,13 @@
 
 所有版本变更记录
 
+## [1.2.0](https://github.com/aemeath-projects/napcat/compare/v1.1.2...v1.2.0) (2026-06-17)
+
+
+### ♻重构
+
+* 统一 API 字段命名为 camelCase 风格 ([2a25095](https://github.com/aemeath-projects/napcat/commit/2a250955c59374d5f0911636723e93e21c7f0a87))
+
 ## [1.1.2](https://github.com/aemeath-projects/napcat/compare/v1.1.1...v1.1.2) (2026-06-16)
 
 ## [1.1.1](https://github.com/aemeath-projects/napcat/compare/v1.1.0...v1.1.1) (2026-06-15)
