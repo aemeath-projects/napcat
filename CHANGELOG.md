@@ -2,6 +2,13 @@
 
 所有版本变更记录
 
+## [1.2.1](https://github.com/aemeath-projects/napcat/compare/v1.2.0...v1.2.1) (2026-06-25)
+
+
+### 文档
+
+* 更新codecov badge ([5bf7cf9](https://github.com/aemeath-projects/napcat/commit/5bf7cf9cd4a2d05f2a03e3f76c3c8dc2033ee4d4))
+
 ## [1.2.0](https://github.com/aemeath-projects/napcat/compare/v1.1.2...v1.2.0) (2026-06-17)
 
 
