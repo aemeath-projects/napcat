@@ -188,7 +188,7 @@ describe('拓展 API', () => {
     expect(result.ok).toBe(true)
   })
 
-  // ── 4.18.6+ 扩展端点测试 ──
+  /* 4.18.8+ 扩展端点测试 */
 
   it('addCustomFace 添加自定义表情', async () => {
     const client = mockClient()

@@ -115,7 +115,7 @@ export class ExtensionApi extends BaseApi {
     })
   }
 
-  // ── 4.18.6+ 扩展端点 ──
+  /* 4.18.8+ 扩展端点 */
 
   /** 添加自定义表情。 */
   addCustomFace(

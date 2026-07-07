@@ -155,7 +155,7 @@ describe('文件 API', () => {
     })
   })
 
-  // ── 4.18.6+ 文件端点测试 ──
+  /* 4.18.8+ 文件端点测试 */
 
   it('downloadFileImageStream 下载图片文件流', async () => {
     const client = mockClient()

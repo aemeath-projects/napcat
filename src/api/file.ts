@@ -121,7 +121,7 @@ export class FileApi extends BaseApi {
     })
   }
 
-  // ── 4.18.6+ 文件端点 ──
+  /* 4.18.8+ 文件端点 */
 
   /** 下载图片文件流。 */
   downloadFileImageStream(

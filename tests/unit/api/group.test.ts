@@ -274,7 +274,7 @@ describe('群 API', () => {
     )
   })
 
-  // ── 4.18.6+ 群相关端点测试 ──
+  /* 4.18.8+ 群相关端点测试 */
 
   it('getGroupDetailInfo 获取群详细信息', async () => {
     const client = mockClient({ group_id: 1001, group_name: 'Test', member_count: 50 })

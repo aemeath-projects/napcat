@@ -54,16 +54,16 @@ export default defineConfig(
         { selector: 'method', modifiers: ['private'], format: ['camelCase'], leadingUnderscore: 'require' },
         { selector: 'method', modifiers: ['requiresQuotes'], format: null },
         { selector: 'accessor', format: ['camelCase'] },
-        // ── 参数 ──
+        /* 参数 */
         { selector: 'parameter', format: ['camelCase'], leadingUnderscore: 'allow' },
-        // ── 变量 ──
+        /* 变量 */
         { selector: 'variable', format: ['camelCase'] },
         { selector: 'variable', modifiers: ['const'], format: ['camelCase', 'UPPER_CASE'] },
-        // ── 属性 ──
+        /* 属性 */
         { selector: 'property', format: ['camelCase'] },
         { selector: 'property', modifiers: ['private'], format: ['camelCase'], leadingUnderscore: 'require' },
         { selector: 'property', modifiers: ['requiresQuotes'], format: null },
-        // ── 对象字面量属性（放行 snake_case API 参数）──
+        /* 对象字面量属性（放行 snake_case API 参数） */
         { selector: 'objectLiteralProperty', format: null },
       ],
     },
