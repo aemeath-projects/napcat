@@ -2,6 +2,13 @@
 
 所有版本变更记录
 
+## [1.2.3](https://github.com/aemeath-projects/napcat/compare/v1.2.2...v1.2.3) (2026-07-08)
+
+
+### 重构
+
+* 移除prepublishOnly脚本并优化模块导入为精确路径 ([eb7823a](https://github.com/aemeath-projects/napcat/commit/eb7823abd20fdc6d27e1e5d55d616a92e5bd54a7))
+
 ## [1.2.2](https://github.com/aemeath-projects/napcat/compare/v1.2.1...v1.2.2) (2026-07-08)
 
 
