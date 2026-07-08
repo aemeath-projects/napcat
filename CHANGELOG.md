@@ -2,6 +2,13 @@
 
 所有版本变更记录
 
+## [1.2.4](https://github.com/aemeath-projects/napcat/compare/v1.2.3...v1.2.4) (2026-07-08)
+
+
+### 新功能
+
+* 新增 giveUp 重连耗尽事件并修复重连计数器提前重置 ([9f612bd](https://github.com/aemeath-projects/napcat/commit/9f612bde1b51a788c51d5fd741f4c3b6ae1a8412))
+
 ## [1.2.3](https://github.com/aemeath-projects/napcat/compare/v1.2.2...v1.2.3) (2026-07-08)
 
 
