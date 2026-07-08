@@ -47,6 +47,15 @@ describe('handleIncomingMessage 消息处理', () => {
     expect(emit).toHaveBeenCalledWith('event', expect.objectContaining({ postType: 'meta_event' }))
   })
 
+  it('post_type 为非字符串时不触发事件', () => {
+    const pending = new Map()
+    const emit = vi.fn()
+
+    handleIncomingMessage('{"post_type":123,"message_type":"group"}', pending, emit)
+
+    expect(emit).not.toHaveBeenCalled()
+  })
+
   it('echo 存在但 pending 中无对应条目时静默返回（过时响应）', () => {
     const pending = new Map()
     const emit = vi.fn()

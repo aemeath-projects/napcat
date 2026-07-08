@@ -181,6 +181,26 @@ describe('HttpTransport HTTP 传输', () => {
     expect((event as Record<string, unknown>).postType).toBe('meta_event')
   })
 
+  it('connect() 健康检查遇到网络异常时抛出 ConnectionError', async () => {
+    napcat.onAction('get_login_info', () => ({
+      status: 'ok',
+      retcode: 0,
+      data: {},
+    }))
+    // 关闭 napcat mock server，使后续 HTTP 调用失败
+    await napcat.close()
+    transport = new HttpTransport({
+      apiBaseUrl: napcat.baseUrl,
+      eventServer: { host: '127.0.0.1', port: 0, path: '/onebot/event' },
+    })
+    await expect(transport.connect()).rejects.toBeInstanceOf(ConnectionError)
+    // 异常后 event server 应已停止，再断一次也是安全的
+    await transport.disconnect().catch(() => {})
+    // 为 afterEach 重建 napcat
+    napcat = new MockNapCatHttpServer()
+    await napcat.listen()
+  })
+
   it('通过 query string access_token 传递 token 的事件请求鉴权成功', async () => {
     napcat.onAction('get_login_info', () => ({
       status: 'ok',

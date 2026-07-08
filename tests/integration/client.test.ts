@@ -40,6 +40,24 @@ describe('NapCat 客户端', () => {
     expect(closeSpy).toHaveBeenCalledTimes(1)
   })
 
+  it('转发 transport 的 giveUp 事件', async () => {
+    const localTransport = new WebSocketTransport({
+      url: server.url,
+      reconnect: { initialDelay: 50, maxDelay: 100, jitter: 0, maxRetries: 1 },
+    })
+    const localClient = new NapCatClient(localTransport)
+    await localClient.connect()
+
+    const giveUpPromise = new Promise<void>((resolve) => localClient.once('giveUp', resolve))
+
+    server.simulateDisconnect()
+    await new Promise<void>((resolve) => localClient.once('connect', resolve))
+    server.simulateDisconnect()
+
+    await giveUpPromise
+    await localClient.disconnect().catch(() => {})
+  })
+
   it('群消息分发到 message.group 事件', async () => {
     await client.connect()
     const spy = vi.fn()

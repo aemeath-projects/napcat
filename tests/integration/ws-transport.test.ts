@@ -100,6 +100,29 @@ describe('WebSocketTransport WebSocket 传输', () => {
     expect(transport.state).toBe('connected')
   })
 
+  it('防止重复断开连接', async () => {
+    transport = new WebSocketTransport({ url: server.url })
+    await transport.connect()
+    await transport.disconnect()
+    // 二次断开应安全无异常
+    await expect(transport.disconnect()).resolves.toBeUndefined()
+  })
+
+  it('断开时有挂起的 call() 应全部 reject', async () => {
+    transport = new WebSocketTransport({ url: server.url, timeout: 5000 })
+    await transport.connect()
+
+    // 发起一个 call()，不等待 server 响应
+    const callPromise = expect(transport.call('pending_action', {})).rejects.toThrow(
+      'WebSocket 连接已断开',
+    )
+
+    // 立即断开 — 此时 pending 应该被 reject
+    await new Promise((r) => setTimeout(r, 50))
+    server.simulateDisconnect()
+    await callPromise
+  })
+
   it('call() 在未连接时抛出 TransportError', async () => {
     transport = new WebSocketTransport({ url: server.url })
     await expect(transport.call('get_login_info', {})).rejects.toThrow('无法调用')
@@ -123,22 +146,30 @@ describe('WebSocketTransport WebSocket 传输', () => {
     // 等待 connect 事件（第一次重连成功）
     await new Promise<void>((resolve) => transport.once('connect', resolve))
 
-    // 第二次断开
-    server.simulateDisconnect()
-
-    // 等待第二次重连
-    try {
-      await new Promise<void>((resolve) => transport.once('connect', resolve))
-    } catch {
-      // 可能已经无法重连
-    }
-
-    // 第三次断开 — 此时不应再重连
+    // 第二次断开 — canRetry() 已为 false，不应再重连
     const closePromise = new Promise<void>((resolve) => transport.once('close', resolve))
     server.simulateDisconnect()
 
     // 等待 close，验证最终停止
     await closePromise
     expect(transport.state).toBe('disconnected')
+  })
+
+  it('达到最大重试次数后触发 giveUp 事件', async () => {
+    transport = new WebSocketTransport({
+      url: server.url,
+      reconnect: { initialDelay: 50, maxDelay: 100, jitter: 0, maxRetries: 1 },
+    })
+    await transport.connect()
+
+    const giveUpPromise = new Promise<void>((resolve) => transport.once('giveUp', resolve))
+
+    // 第一次断开 → 触发第 1 次重连（用完 maxRetries=1），重连应成功
+    server.simulateDisconnect()
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+
+    // 第二次断开 → canRetry() 已为 false，应直接触发 giveUp 而不再重连
+    server.simulateDisconnect()
+    await giveUpPromise
   })
 })

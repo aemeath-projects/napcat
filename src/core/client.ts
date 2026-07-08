@@ -43,6 +43,7 @@ export class NapCatClient extends TypedEventEmitter<ClientEventMap> {
     this.transport.on('reconnecting', (attempt: number, delay: number) =>
       this.emit('reconnecting', attempt, delay),
     )
+    this.transport.on('giveUp', () => this.emit('giveUp'))
 
     this.transport.on('event', (raw: OneBotEvent) => {
       if (HIERARCHICAL_POST_TYPES.has(raw.postType)) {

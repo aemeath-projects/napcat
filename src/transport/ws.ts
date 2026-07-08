@@ -10,9 +10,10 @@ import type { Transport, TransportState } from './interface.js'
 import { handleIncomingMessage, type PendingCall } from './message.js'
 import { ReconnectPolicy, type ReconnectOptions } from './reconnect.js'
 
-/** WebSocketTransport 扩展事件映射，增加 reconnecting 事件。 */
+/** WebSocketTransport 扩展事件映射，增加 reconnecting/giveUp 事件。 */
 export interface WsTransportEventMap extends TransportEventMap {
   reconnecting: (attempt: number, delay: number) => void
+  giveUp: () => void
 }
 
 /** WebSocketTransport 构造参数。 */
@@ -70,7 +71,6 @@ export class WebSocketTransport
     return new Promise<void>((resolve, reject) => {
       const onOpen = () => {
         this._state = 'connected'
-        this._reconnectPolicy?.reset()
         this.emit('connect')
         cleanup()
         resolve()
@@ -166,6 +166,7 @@ export class WebSocketTransport
   /** 安排重连。 */
   private _scheduleReconnect(): void {
     if (!this._reconnectPolicy?.canRetry()) {
+      if (this._reconnectPolicy) this.emit('giveUp')
       return
     }
 

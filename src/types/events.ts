@@ -351,6 +351,7 @@ export interface ClientEventMap {
   close: () => void
   error: (error: Error) => void
   reconnecting: (attempt: number, delay: number) => void
+  giveUp: () => void
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: (...args: any[]) => void
 }

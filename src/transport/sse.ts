@@ -7,9 +7,10 @@ import { apiCall } from './http-client.js'
 import type { Transport, TransportState } from './interface.js'
 import { ReconnectPolicy, type ReconnectOptions } from './reconnect.js'
 
-/** SseTransport 扩展事件映射，增加 reconnecting 事件。 */
+/** SseTransport 扩展事件映射，增加 reconnecting/giveUp 事件。 */
 export interface SseTransportEventMap extends TransportEventMap {
   reconnecting: (attempt: number, delay: number) => void
+  giveUp: () => void
 }
 
 /** SseTransport 构造参数。 */
@@ -85,7 +86,6 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
     }
 
     this._state = 'connected'
-    this._reconnectPolicy?.reset()
 
     // setTimeout(0) 推迟 emit 到下一个宏任务：
     // connect() 先 resolve → 调用方注册 once('connect', ...) → 宏任务触发 emit
@@ -164,7 +164,10 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
 
   /** 按 ReconnectPolicy 安排下次重连。 */
   private _scheduleReconnect(): void {
-    if (!this._reconnectPolicy?.canRetry()) return
+    if (!this._reconnectPolicy?.canRetry()) {
+      if (this._reconnectPolicy) this.emit('giveUp')
+      return
+    }
     const attempt = this._reconnectPolicy.attempts + 1
     const delay = this._reconnectPolicy.nextDelay()
     const snapshotId = this._connectionId
