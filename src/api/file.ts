@@ -11,13 +11,19 @@ export class FileApi extends BaseApi {
     file: string,
     name: string,
     folder?: string,
+    uploadFile?: boolean,
   ): Promise<Result<void>> {
-    return this.invoke('upload_group_file', { group_id: groupId, file, name, folder })
+    return this.invoke('upload_group_file', { group_id: groupId, file, name, folder, uploadFile })
   }
 
   /** 上传私聊文件。 */
-  uploadPrivateFile(userId: number, file: string, name: string): Promise<Result<void>> {
-    return this.invoke('upload_private_file', { user_id: userId, file, name })
+  uploadPrivateFile(
+    userId: number,
+    file: string,
+    name: string,
+    uploadFile?: boolean,
+  ): Promise<Result<void>> {
+    return this.invoke('upload_private_file', { user_id: userId, file, name, uploadFile })
   }
 
   /** 获取群文件 URL。 */
@@ -121,7 +127,7 @@ export class FileApi extends BaseApi {
     })
   }
 
-  /* 4.18.8+ 文件端点 */
+  /* 4.18.9+ 文件端点 */
 
   /** 下载图片文件流。 */
   downloadFileImageStream(

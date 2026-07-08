@@ -19,6 +19,19 @@ describe('文件 API', () => {
       file: '/path/file.txt',
       name: 'file.txt',
       folder: 'folder1',
+      upload_file: undefined,
+    })
+  })
+  it('uploadGroupFile 上传群文件设置为不上传', async () => {
+    const client = mockClient()
+    const api = new FileApi(client)
+    await api.uploadGroupFile(1001, '/path/file.txt', 'file.txt', 'folder1', false)
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('upload_group_file', {
+      group_id: 1001,
+      file: '/path/file.txt',
+      name: 'file.txt',
+      folder: 'folder1',
+      upload_file: false,
     })
   })
   it('downloadFile 下载文件', async () => {
@@ -50,6 +63,18 @@ describe('文件 API', () => {
       user_id: 9999,
       file: '/path/file.txt',
       name: 'file.txt',
+      upload_file: undefined,
+    })
+  })
+  it('uploadPrivateFile 上传私聊文件设置为不上传', async () => {
+    const client = mockClient()
+    const api = new FileApi(client)
+    await api.uploadPrivateFile(9999, '/path/file.txt', 'file.txt', false)
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('upload_private_file', {
+      user_id: 9999,
+      file: '/path/file.txt',
+      name: 'file.txt',
+      upload_file: false,
     })
   })
   it('createGroupFileFolder 创建群文件文件夹', async () => {
@@ -155,7 +180,7 @@ describe('文件 API', () => {
     })
   })
 
-  /* 4.18.8+ 文件端点测试 */
+  /* 4.18.9+ 文件端点测试 */
 
   it('downloadFileImageStream 下载图片文件流', async () => {
     const client = mockClient()
@@ -201,11 +226,11 @@ describe('文件 API', () => {
     const client = mockClient()
     const api = new FileApi(client)
     await api.uploadFileStream({
-      stream_id: 'stream_001',
-      file_retention: 1,
-      chunk_data: 'base64data',
-      chunk_index: 0,
-      total_chunks: 5,
+      streamId: 'stream_001',
+      fileRetention: 1,
+      chunkData: 'base64data',
+      chunkIndex: 0,
+      totalChunks: 5,
       filename: 'test.txt',
     })
     expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('upload_file_stream', {

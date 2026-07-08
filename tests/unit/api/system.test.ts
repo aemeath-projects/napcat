@@ -210,7 +210,7 @@ describe('系统 API', () => {
     )
   })
 
-  /* 4.18.8+ 系统端点测试 */
+  /* 4.18.9+ 系统端点测试 */
 
   it('setRestart 重启服务', async () => {
     const client = mockClient()
