@@ -2,6 +2,13 @@
 
 所有版本变更记录
 
+## [1.2.2](https://github.com/aemeath-projects/napcat/compare/v1.2.1...v1.2.2) (2026-07-08)
+
+
+### 新功能
+
+* 适配 NapCat 4.18.9 并更新版本标记 ([c448905](https://github.com/aemeath-projects/napcat/commit/c4489054164a469cb7a87883e6328cbee1a6dbaf))
+
 ## [1.2.1](https://github.com/aemeath-projects/napcat/compare/v1.2.0...v1.2.1) (2026-06-25)
 
 
