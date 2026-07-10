@@ -19,7 +19,7 @@ describe('NapCat 客户端', () => {
 
   afterEach(async () => {
     await client.disconnect().catch(() => {})
-    await server.close()
+    await server.close().catch(() => {})
   })
 
   it('connect/disconnect 委托给 transport', async () => {
@@ -43,16 +43,24 @@ describe('NapCat 客户端', () => {
   it('转发 transport 的 giveUp 事件', async () => {
     const localTransport = new WebSocketTransport({
       url: server.url,
-      reconnect: { initialDelay: 50, maxDelay: 100, jitter: 0, maxRetries: 1 },
+      reconnect: { initialDelay: 30, maxDelay: 60, jitter: 0, maxRetries: 2 },
     })
+    // 每次失败的重连尝试都会 emit 一个 'error' 事件；EventEmitter 在零监听器时
+    // emit('error', ...) 会同步抛出，此处必须兜底监听。
+    localTransport.on('error', () => {})
     const localClient = new NapCatClient(localTransport)
+    // NapCatClient 会把 transport 的 'error' 事件转发到自身；同样的零监听器
+    // 语义在 client 这一层也适用，必须一并兜底监听。
+    localClient.on('error', () => {})
     await localClient.connect()
 
     const giveUpPromise = new Promise<void>((resolve) => localClient.once('giveUp', resolve))
 
+    // 重连计数器清零 bug 修复后，单次成功重连不再耗尽预算——必须让重连本身
+    // 持续失败（关闭服务器）才能真正走到 giveUp，而不是像修复前那样靠"第二次
+    // 断开时预算已耗尽"这种巧合触发。
     server.simulateDisconnect()
-    await new Promise<void>((resolve) => localClient.once('connect', resolve))
-    server.simulateDisconnect()
+    await server.close()
 
     await giveUpPromise
     await localClient.disconnect().catch(() => {})

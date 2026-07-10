@@ -81,4 +81,14 @@ describe('重连策略', () => {
     expect(delay).toBeGreaterThanOrEqual(900)
     expect(delay).toBeLessThanOrEqual(1100)
   })
+
+  it('stableAfterMs 默认值为 30000', () => {
+    const policy = new ReconnectPolicy()
+    expect(policy.stableAfterMs).toBe(30_000)
+  })
+
+  it('stableAfterMs 可自定义', () => {
+    const policy = new ReconnectPolicy({ stableAfterMs: 5000 })
+    expect(policy.stableAfterMs).toBe(5000)
+  })
 })

@@ -43,6 +43,7 @@ export class WebSocketTransport
   private _intentionalClose = false
   private readonly _reconnectPolicy: ReconnectPolicy | null = null
   private readonly _pending = new Map<string, PendingCall>()
+  private _stableResetTimer: ReturnType<typeof setTimeout> | null = null
 
   constructor(opts: WebSocketTransportOptions) {
     super()
@@ -71,6 +72,7 @@ export class WebSocketTransport
     return new Promise<void>((resolve, reject) => {
       const onOpen = () => {
         this._state = 'connected'
+        this._armStableResetTimer()
         this.emit('connect')
         cleanup()
         resolve()
@@ -100,6 +102,7 @@ export class WebSocketTransport
 
       ws.on('close', () => {
         this._state = 'disconnected'
+        this._clearStableResetTimer()
         // 拒绝所有 pending 调用
         for (const [echo, pending] of this._pending) {
           clearTimeout(pending.timer)
@@ -121,6 +124,7 @@ export class WebSocketTransport
   /** 断开连接。 */
   async disconnect(): Promise<void> {
     this._intentionalClose = true
+    this._clearStableResetTimer()
     if (!this._ws || this._state === 'disconnected') {
       return
     }
@@ -161,6 +165,28 @@ export class WebSocketTransport
     if (!this._token) return this._url
     const separator = this._url.includes('?') ? '&' : '?'
     return `${this._url}${separator}access_token=${encodeURIComponent(this._token)}`
+  }
+
+  /**
+   * 连接成功后，等待连接维持满 reconnectPolicy.stableAfterMs 才清零重连计数器；
+   * 期间若再次断开（close 事件会调用 _clearStableResetTimer）则取消，
+   * 避免疯狂闪断、从未真正稳定过的连接因为短暂的重连成功而无限重试、永远不耗尽预算。
+   */
+  private _armStableResetTimer(): void {
+    if (!this._reconnectPolicy) return
+    this._clearStableResetTimer()
+    this._stableResetTimer = setTimeout(() => {
+      this._reconnectPolicy?.reset()
+      this._stableResetTimer = null
+    }, this._reconnectPolicy.stableAfterMs)
+  }
+
+  /** 取消待触发的稳定期清零定时器（若有）。 */
+  private _clearStableResetTimer(): void {
+    if (this._stableResetTimer) {
+      clearTimeout(this._stableResetTimer)
+      this._stableResetTimer = null
+    }
   }
 
   /** 安排重连。 */

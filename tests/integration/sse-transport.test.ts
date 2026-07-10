@@ -18,7 +18,7 @@ describe('SseTransport SSE 传输', () => {
 
   afterEach(async () => {
     await transport?.disconnect().catch(() => {})
-    await server.close()
+    await server.close().catch(() => {})
   })
 
   it('connect() 建立 SSE 连接', async () => {
@@ -81,21 +81,67 @@ describe('SseTransport SSE 传输', () => {
     expect(transport.state).toBe('connected')
   })
 
-  it('达到最大重试次数后触发 giveUp 事件', async () => {
+  it('重连耗尽后触发 giveUp 事件（同一次故障期间连续失败）', async () => {
     transport = new SseTransport({
       baseUrl: server.baseUrl,
-      reconnect: { initialDelay: 50, maxDelay: 100, jitter: 0, maxRetries: 1 },
+      reconnect: { initialDelay: 30, maxDelay: 60, jitter: 0, maxRetries: 2 },
     })
+    // 每次失败的重连尝试都会 emit 一个 'error' 事件；EventEmitter 在零监听器时
+    // emit('error', ...) 会同步抛出，此处必须兜底监听。
+    transport.on('error', () => {})
     await transport.connect()
     await new Promise<void>((resolve) => transport.once('connect', resolve))
 
     const giveUpPromise = new Promise<void>((resolve) => transport.once('giveUp', resolve))
 
-    // 第一次断开 → 触发第 1 次重连（用完 maxRetries=1），重连应成功
     server.closeAllSseConnections()
+    await server.close()
+
+    await giveUpPromise
+  })
+
+  it('连接维持满 stableAfterMs 后重置计数器：多轮断连恢复不会累积耗尽重试预算', async () => {
+    transport = new SseTransport({
+      baseUrl: server.baseUrl,
+      reconnect: { initialDelay: 20, maxDelay: 50, jitter: 0, maxRetries: 2, stableAfterMs: 50 },
+    })
+    transport.on('error', () => {})
+    await transport.connect()
     await new Promise<void>((resolve) => transport.once('connect', resolve))
 
-    // 第二次断开 → canRetry() 已为 false，应直接触发 giveUp
+    for (let i = 0; i < 3; i++) {
+      const outcome = new Promise<'connect' | 'giveUp'>((resolve) => {
+        transport.once('connect', () => resolve('connect'))
+        transport.once('giveUp', () => resolve('giveUp'))
+      })
+      server.closeAllSseConnections()
+      expect(await outcome).toBe('connect')
+      // 等待连接维持满 stableAfterMs，让计数器真正清零，否则下一轮断连会累积耗尽
+      await new Promise((resolve) => setTimeout(resolve, 80))
+    }
+  })
+
+  it('连接未维持满 stableAfterMs 就再次断开时，重连计数器不清零，反复闪断最终仍会 giveUp', async () => {
+    transport = new SseTransport({
+      baseUrl: server.baseUrl,
+      reconnect: { initialDelay: 10, maxDelay: 20, jitter: 0, maxRetries: 2, stableAfterMs: 300 },
+    })
+    transport.on('error', () => {})
+    await transport.connect()
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+
+    // 第 1 轮：断开后立刻重连成功，远早于 stableAfterMs=300ms，计数器不会被清零
+    let connectPromise = new Promise<void>((resolve) => transport.once('connect', resolve))
+    server.closeAllSseConnections()
+    await connectPromise
+
+    // 第 2 轮：同样立刻再断开、立刻重连成功，用完第 2 次重试预算（maxRetries=2）
+    connectPromise = new Promise<void>((resolve) => transport.once('connect', resolve))
+    server.closeAllSseConnections()
+    await connectPromise
+
+    // 第 3 次断开：两轮都没等到稳定期清零，预算已耗尽，应直接 giveUp
+    const giveUpPromise = new Promise<void>((resolve) => transport.once('giveUp', resolve))
     server.closeAllSseConnections()
     await giveUpPromise
   })

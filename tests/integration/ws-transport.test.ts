@@ -16,7 +16,7 @@ describe('WebSocketTransport WebSocket 传输', () => {
 
   afterEach(async () => {
     await transport?.disconnect().catch(() => {})
-    await server.close()
+    await server.close().catch(() => {})
   })
 
   it('成功连接', async () => {
@@ -128,47 +128,69 @@ describe('WebSocketTransport WebSocket 传输', () => {
     await expect(transport.call('get_login_info', {})).rejects.toThrow('无法调用')
   })
 
-  it('达到最大重试次数后停止重连', async () => {
+  it('重连耗尽后触发 giveUp 且停止重连（同一次故障期间连续失败）', async () => {
     transport = new WebSocketTransport({
       url: server.url,
-      reconnect: { initialDelay: 50, maxDelay: 100, jitter: 0, maxRetries: 1 },
+      reconnect: { initialDelay: 30, maxDelay: 60, jitter: 0, maxRetries: 2 },
     })
-    await transport.connect()
-
-    // 收集重连事件
-    const attempts: number[] = []
-    transport.on('reconnecting', (attempt, _delay) => {
-      attempts.push(attempt)
-    })
-
-    server.simulateDisconnect()
-
-    // 等待 connect 事件（第一次重连成功）
-    await new Promise<void>((resolve) => transport.once('connect', resolve))
-
-    // 第二次断开 — canRetry() 已为 false，不应再重连
-    const closePromise = new Promise<void>((resolve) => transport.once('close', resolve))
-    server.simulateDisconnect()
-
-    // 等待 close，验证最终停止
-    await closePromise
-    expect(transport.state).toBe('disconnected')
-  })
-
-  it('达到最大重试次数后触发 giveUp 事件', async () => {
-    transport = new WebSocketTransport({
-      url: server.url,
-      reconnect: { initialDelay: 50, maxDelay: 100, jitter: 0, maxRetries: 1 },
-    })
+    // 每次失败的重连尝试都会让 ws 库 emit 一个 'error' 事件；Node EventEmitter 在零监听器时
+    // emit('error', ...) 会同步抛出并打垮进程，此处必须兜底监听。
+    transport.on('error', () => {})
     await transport.connect()
 
     const giveUpPromise = new Promise<void>((resolve) => transport.once('giveUp', resolve))
 
-    // 第一次断开 → 触发第 1 次重连（用完 maxRetries=1），重连应成功
+    // 断开后立即关闭服务器：之后所有重连尝试都会因 ECONNREFUSED 失败
     server.simulateDisconnect()
-    await new Promise<void>((resolve) => transport.once('connect', resolve))
+    await server.close()
 
-    // 第二次断开 → canRetry() 已为 false，应直接触发 giveUp 而不再重连
+    // 连续失败 2 次（maxRetries=2）后应彻底放弃
+    await giveUpPromise
+    expect(transport.state).toBe('disconnected')
+  })
+
+  it('连接维持满 stableAfterMs 后重置计数器：多轮断连恢复不会累积耗尽重试预算', async () => {
+    transport = new WebSocketTransport({
+      url: server.url,
+      reconnect: { initialDelay: 20, maxDelay: 50, jitter: 0, maxRetries: 2, stableAfterMs: 50 },
+    })
+    transport.on('error', () => {})
+    await transport.connect()
+
+    // 连续 3 轮"断开→重连成功→等待稳定期"，轮数超过 maxRetries=2——
+    // 如果计数器不在稳定期后清零，第 3 轮会在耗尽预算后直接 giveUp 而不是重连成功
+    for (let i = 0; i < 3; i++) {
+      const outcome = new Promise<'connect' | 'giveUp'>((resolve) => {
+        transport.once('connect', () => resolve('connect'))
+        transport.once('giveUp', () => resolve('giveUp'))
+      })
+      server.simulateDisconnect()
+      expect(await outcome).toBe('connect')
+      // 等待连接维持满 stableAfterMs，让计数器真正清零，否则下一轮断连会累积耗尽
+      await new Promise((resolve) => setTimeout(resolve, 80))
+    }
+  })
+
+  it('连接未维持满 stableAfterMs 就再次断开时，重连计数器不清零，反复闪断最终仍会 giveUp', async () => {
+    transport = new WebSocketTransport({
+      url: server.url,
+      reconnect: { initialDelay: 10, maxDelay: 20, jitter: 0, maxRetries: 2, stableAfterMs: 300 },
+    })
+    transport.on('error', () => {})
+    await transport.connect()
+
+    // 第 1 轮：断开后立刻重连成功，远早于 stableAfterMs=300ms，计数器不会被清零
+    let connectPromise = new Promise<void>((resolve) => transport.once('connect', resolve))
+    server.simulateDisconnect()
+    await connectPromise
+
+    // 第 2 轮：同样立刻再断开、立刻重连成功，用完第 2 次重试预算（maxRetries=2）
+    connectPromise = new Promise<void>((resolve) => transport.once('connect', resolve))
+    server.simulateDisconnect()
+    await connectPromise
+
+    // 第 3 次断开：两轮都没等到稳定期清零，预算已耗尽，应直接 giveUp
+    const giveUpPromise = new Promise<void>((resolve) => transport.once('giveUp', resolve))
     server.simulateDisconnect()
     await giveUpPromise
   })

@@ -30,6 +30,7 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
   private _intentionalClose = false
   private _reconnectPolicy: ReconnectPolicy | null = null
   private _connectionId = 0
+  private _stableResetTimer: ReturnType<typeof setTimeout> | null = null
 
   private readonly _baseUrl: string
   private readonly _token: string | undefined
@@ -77,15 +78,31 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
     } catch (err) {
       this._state = 'disconnected'
       if ((err as Error).name === 'AbortError') return
+      // 连接尝试本身失败（无论是首次 connect() 还是 _scheduleReconnect 安排的重试）
+      // 都要继续安排下一次重连，否则一旦某次重试失败就会永久停在 disconnected，
+      // 既不会继续退避重试也不会走到 giveUp——与 WebSocketTransport 的行为对齐
+      // （其底层 ws 库在连接失败时同样会触发 close 事件进而重新安排重连）。disconnect()
+      // 可能在上面的 await fetch() 期间被并发调用并把 _intentionalClose 置为 true，
+      // 类型检查器看不到这种跨 await 的并发修改，误判为"恒为 false"。
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (!this._intentionalClose && this._reconnectPolicy) {
+        this._scheduleReconnect()
+      }
       throw new TransportError(`SSE 连接失败：${err instanceof Error ? err.message : String(err)}`)
     }
 
     if (!resp.ok) {
       this._state = 'disconnected'
+      // 同上：disconnect() 可能在 await fetch() 期间并发把 _intentionalClose 置为 true。
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (!this._intentionalClose && this._reconnectPolicy) {
+        this._scheduleReconnect()
+      }
       throw new TransportError(`SSE 连接失败：HTTP ${resp.status.toString()}`)
     }
 
     this._state = 'connected'
+    this._armStableResetTimer()
 
     // setTimeout(0) 推迟 emit 到下一个宏任务：
     // connect() 先 resolve → 调用方注册 once('connect', ...) → 宏任务触发 emit
@@ -155,10 +172,33 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
       if (this._state === 'connected') {
         this._state = 'disconnected'
       }
+      this._clearStableResetTimer()
       if (!this._intentionalClose) {
         this.emit('close')
         this._scheduleReconnect()
       }
+    }
+  }
+
+  /**
+   * 连接成功后，等待连接维持满 reconnectPolicy.stableAfterMs 才清零重连计数器；
+   * 期间若再次断开（_readSseStream 会调用 _clearStableResetTimer）则取消，
+   * 避免疯狂闪断、从未真正稳定过的连接因为短暂的重连成功而无限重试、永远不耗尽预算。
+   */
+  private _armStableResetTimer(): void {
+    if (!this._reconnectPolicy) return
+    this._clearStableResetTimer()
+    this._stableResetTimer = setTimeout(() => {
+      this._reconnectPolicy?.reset()
+      this._stableResetTimer = null
+    }, this._reconnectPolicy.stableAfterMs)
+  }
+
+  /** 取消待触发的稳定期清零定时器（若有）。 */
+  private _clearStableResetTimer(): void {
+    if (this._stableResetTimer) {
+      clearTimeout(this._stableResetTimer)
+      this._stableResetTimer = null
     }
   }
 
@@ -187,6 +227,7 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
   /** 断开 SSE 连接，state → disconnected。 */
   async disconnect(): Promise<void> {
     this._intentionalClose = true
+    this._clearStableResetTimer()
     this._abortController?.abort()
     this._abortController = null
     this._state = 'disconnected'
