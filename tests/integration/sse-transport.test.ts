@@ -362,4 +362,161 @@ describe('SseTransport SSE 传输', () => {
     clearInterval(interval)
     expect(transport.state).toBe('connected')
   })
+
+  // ========== 覆盖率缺口 ==========
+
+  it('reconnecting 事件携带正确的 attempt 和 delay 参数', async () => {
+    transport = new SseTransport({
+      baseUrl: server.baseUrl,
+      reconnect: { initialDelay: 150, maxDelay: 2000, jitter: 0 },
+    })
+    await transport.connect()
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+
+    const payloadPromise = new Promise<[number, number]>((resolve) =>
+      transport.once('reconnecting', (a, d) => resolve([a, d])),
+    )
+    server.closeAllSseConnections()
+
+    const [attempt, delay] = await payloadPromise
+    expect(attempt).toBe(1)
+    expect(delay).toBe(150)
+  })
+
+  it('退避等待期间显式 connect() 取消挂起的重连（connectionId 校验）', async () => {
+    transport = new SseTransport({
+      baseUrl: server.baseUrl,
+      reconnect: { initialDelay: 200, maxDelay: 500, jitter: 0 },
+    })
+    await transport.connect()
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+
+    const reconnectingPromise = new Promise<void>((resolve) =>
+      transport.once('reconnecting', () => resolve()),
+    )
+    server.closeAllSseConnections()
+    await reconnectingPromise
+    expect(transport.state).toBe('reconnecting')
+
+    // 显式 connect() 会递增 _connectionId，使得旧重连定时的 snapshotId 不匹配
+    await transport.connect()
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+    expect(transport.state).toBe('connected')
+
+    // 等待原重连定时器应当触发的时间点之后，验证不会创建第二条 SSE 连接
+    let secondConnect = false
+    transport.once('connect', () => {
+      secondConnect = true
+    })
+    await new Promise((resolve) => setTimeout(resolve, 250))
+    expect(secondConnect).toBe(false)
+    expect(transport.state).toBe('connected')
+  })
+
+  it('reconnecting 状态下 disconnect() 直接转换状态并 emit close', async () => {
+    transport = new SseTransport({
+      baseUrl: server.baseUrl,
+      reconnect: { initialDelay: 200, maxDelay: 500, jitter: 0 },
+    })
+    await transport.connect()
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+
+    const reconnectingPromise = new Promise<void>((resolve) =>
+      transport.once('reconnecting', () => resolve()),
+    )
+    server.closeAllSseConnections()
+    await reconnectingPromise
+    expect(transport.state).toBe('reconnecting')
+
+    let closeEmitted = false
+    transport.on('close', () => {
+      closeEmitted = true
+    })
+
+    const start = Date.now()
+    await transport.disconnect()
+    const elapsed = Date.now() - start
+
+    expect(transport.state).toBe('disconnected')
+    expect(elapsed).toBeLessThan(200)
+    expect(closeEmitted).toBe(true)
+  })
+
+  it('disconnect 正确清理空闲超时定时器，断开后状态一致', async () => {
+    transport = new SseTransport({
+      baseUrl: server.baseUrl,
+      idleTimeoutMs: 30,
+      reconnect: { initialDelay: 50, maxDelay: 200, jitter: 0 },
+    })
+    await transport.connect()
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+
+    // 等待一段时间但不推送事件（空闲计时器在运行）
+    await new Promise((resolve) => setTimeout(resolve, 10))
+
+    // disconnect 应清理空闲计时器，不依赖其超时触发 abort
+    await transport.disconnect()
+    expect(transport.state).toBe('disconnected')
+
+    // 等待原空闲超时应过期的时间后，确认未触发意外的重连
+    await new Promise((resolve) => setTimeout(resolve, 40))
+    expect(transport.state).toBe('disconnected')
+
+    // 可以立即重新连接
+    await transport.connect()
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+    expect(transport.state).toBe('connected')
+  })
+
+  it('connect() 进行中被 disconnect() 中断（AbortError）时应静默返回不抛异常', async () => {
+    transport = new SseTransport({ baseUrl: server.baseUrl })
+    const connectPromise = transport.connect()
+    // disconnect 立刻 abort fetch，connect 应因 AbortError 静默返回
+    await transport.disconnect()
+    await expect(connectPromise).resolves.toBeUndefined()
+    expect(transport.state).toBe('disconnected')
+  })
+
+  it('从未建立连接时 disconnect() 安全调用空 abort', async () => {
+    transport = new SseTransport({ baseUrl: server.baseUrl })
+    const start = Date.now()
+    await transport.disconnect()
+    const elapsed = Date.now() - start
+    expect(elapsed).toBeLessThan(100)
+    expect(transport.state).toBe('disconnected')
+  })
+
+  // ========== 高并发鲁棒性 ==========
+
+  it('快速交替 connect/disconnect 50 次，状态一致无异常', async () => {
+    transport = new SseTransport({ baseUrl: server.baseUrl })
+
+    for (let i = 0; i < 50; i++) {
+      await transport.connect()
+      await new Promise<void>((resolve) => transport.once('connect', resolve))
+      expect(transport.state).toBe('connected')
+
+      await transport.disconnect()
+      expect(transport.state).toBe('disconnected')
+    }
+  })
+
+  it('并发 connect() ×3 不抛异常，最终状态为 connected', async () => {
+    transport = new SseTransport({ baseUrl: server.baseUrl })
+    await Promise.all([transport.connect(), transport.connect(), transport.connect()])
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+    expect(transport.state).toBe('connected')
+  })
+
+  it('call() 在不建立 SSE 连接时仍可通过 HTTP POST 正常工作', async () => {
+    server.onAction('send_private_msg', (body) => ({
+      message_id: Number(body.user_id ?? 0),
+    }))
+    transport = new SseTransport({ baseUrl: server.baseUrl })
+    // 不调用 connect()，直接通过 HTTP POST 调用 API
+    const resp = await transport.call('send_private_msg', { user_id: 999 })
+    expect(resp.status).toBe('ok')
+    expect((resp.data as Record<string, unknown>).message_id).toBe(999)
+    expect(transport.state).toBe('disconnected')
+  })
 })
