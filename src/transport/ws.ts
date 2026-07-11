@@ -26,6 +26,10 @@ export interface WebSocketTransportOptions {
   timeout?: number
   /** 重连策略配置，不传则不自动重连 */
   reconnect?: ReconnectOptions
+  /** 心跳 ping 间隔（ms），用于检测假死连接。默认 25000。 */
+  pingIntervalMs?: number
+  /** 发送 ping 后等待 pong 的超时时间（ms），超时判定连接假死并主动断开。默认 10000。 */
+  pongTimeoutMs?: number
 }
 
 /** 正向 WebSocket Transport：客户端主动连接 NapCat。 */
@@ -44,6 +48,18 @@ export class WebSocketTransport
   private readonly _reconnectPolicy: ReconnectPolicy | null = null
   private readonly _pending = new Map<string, PendingCall>()
   private _stableResetTimer: ReturnType<typeof setTimeout> | null = null
+  private readonly _pingIntervalMs: number
+  private readonly _pongTimeoutMs: number
+  private _pingTimer: ReturnType<typeof setInterval> | null = null
+  private _pongTimeoutTimer: ReturnType<typeof setTimeout> | null = null
+  /**
+   * 连接身份计数器（每次 connect() 递增）。
+   * 用途：健康检查失败触发的 forceReconnect() 与本 transport 自身的指数退避重连
+   * 互不知晓、可能并发调用 connect()，产生两个 WebSocket 实例。旧实例的 open/close
+   * 回调绑定在闭包里不会被自动清理，若不校验连接身份，旧实例延迟触发的事件会用过期
+   * 状态覆盖当前（新）连接的真实状态。镜像 SseTransport 的 _connectionId 机制。
+   */
+  private _connectionId = 0
 
   constructor(opts: WebSocketTransportOptions) {
     super()
@@ -51,6 +67,8 @@ export class WebSocketTransport
     this._token = opts.token
     this._timeout = opts.timeout ?? 10000
     this._reconnectOpts = opts.reconnect
+    this._pingIntervalMs = opts.pingIntervalMs ?? 25000
+    this._pongTimeoutMs = opts.pongTimeoutMs ?? 10000
     if (opts.reconnect) {
       this._reconnectPolicy = new ReconnectPolicy(opts.reconnect)
     }
@@ -64,6 +82,7 @@ export class WebSocketTransport
   async connect(): Promise<void> {
     this._state = 'connecting'
     this._intentionalClose = false
+    const connectionId = ++this._connectionId
 
     const url = this._buildUrl()
     const ws = new WebSocket(url)
@@ -71,8 +90,12 @@ export class WebSocketTransport
 
     return new Promise<void>((resolve, reject) => {
       const onOpen = () => {
+        // 本次连接已被后续的 connect() 调用替换（如外部触发器与自身重连并发），
+        // 这是一个过期实例的 open 事件，不应再影响当前状态。
+        if (this._connectionId !== connectionId) return
         this._state = 'connected'
         this._armStableResetTimer()
+        this._startPingLoop(ws, connectionId)
         this.emit('connect')
         cleanup()
         resolve()
@@ -92,6 +115,7 @@ export class WebSocketTransport
       ws.once('error', onError)
 
       ws.on('message', (raw) => {
+        if (this._connectionId !== connectionId) return // 过期连接的消息不再处理
         const text = Buffer.isBuffer(raw)
           ? raw.toString('utf8')
           : Array.isArray(raw)
@@ -100,9 +124,18 @@ export class WebSocketTransport
         handleIncomingMessage(text, this._pending, (event, data) => this.emit(event, data))
       })
 
+      ws.on('pong', () => {
+        if (this._connectionId !== connectionId) return
+        this._clearPongTimeout()
+      })
+
       ws.on('close', () => {
+        // 过期连接（已被替换）的 close 事件不再驱动状态迁移或安排重连，
+        // 否则会用旧连接的断开覆盖当前新连接的真实状态。
+        if (this._connectionId !== connectionId) return
         this._state = 'disconnected'
         this._clearStableResetTimer()
+        this._clearPingLoop()
         // 拒绝所有 pending 调用
         for (const [echo, pending] of this._pending) {
           clearTimeout(pending.timer)
@@ -116,6 +149,7 @@ export class WebSocketTransport
       })
 
       ws.on('error', (err) => {
+        if (this._connectionId !== connectionId) return
         this.emit('error', new TransportError(err.message))
       })
     })
@@ -125,6 +159,17 @@ export class WebSocketTransport
   async disconnect(): Promise<void> {
     this._intentionalClose = true
     this._clearStableResetTimer()
+    this._clearPingLoop()
+    if (this._state === 'reconnecting') {
+      // 退避等待期间没有存活的 socket 可关闭：this._ws 仍指向上一次已关闭的旧连接，
+      // 若不特殊处理会走到下面的慢速分支，对着一个早已关闭的 ws 再调用一次 close()（无效操作，
+      // 不会重新触发 close 事件），导致白白等待 5 秒兜底超时才 resolve，且 state 永远卡在
+      // reconnecting 不会变回 disconnected。待定的重连定时器会在触发时因 _intentionalClose
+      // 为 true 而自行跳过，不需要在这里额外取消。
+      this._state = 'disconnected'
+      this.emit('close')
+      return
+    }
     if (!this._ws || this._state === 'disconnected') {
       return
     }
@@ -189,6 +234,42 @@ export class WebSocketTransport
     }
   }
 
+  /** 启动 ping/pong 心跳循环，检测"看似开着但实际已死"的假死连接。 */
+  private _startPingLoop(ws: WebSocket, connectionId: number): void {
+    this._clearPingLoop()
+    this._pingTimer = setInterval(() => {
+      if (this._connectionId !== connectionId) {
+        this._clearPingLoop()
+        return
+      }
+      ws.ping()
+      this._clearPongTimeout()
+      this._pongTimeoutTimer = setTimeout(() => {
+        // 发出 ping 后在超时时间内未收到 pong：判定连接假死，主动终止连接，
+        // 触发既有的 close → _scheduleReconnect 链路，与真实断线走同一套恢复路径。
+        if (this._connectionId !== connectionId) return
+        ws.terminate()
+      }, this._pongTimeoutMs)
+    }, this._pingIntervalMs)
+  }
+
+  /** 停止 ping 定时器（同时清理挂起的 pong 超时定时器）。 */
+  private _clearPingLoop(): void {
+    if (this._pingTimer) {
+      clearInterval(this._pingTimer)
+      this._pingTimer = null
+    }
+    this._clearPongTimeout()
+  }
+
+  /** 取消挂起的 pong 超时定时器（若有）。 */
+  private _clearPongTimeout(): void {
+    if (this._pongTimeoutTimer) {
+      clearTimeout(this._pongTimeoutTimer)
+      this._pongTimeoutTimer = null
+    }
+  }
+
   /** 安排重连。 */
   private _scheduleReconnect(): void {
     if (!this._reconnectPolicy?.canRetry()) {
@@ -196,14 +277,18 @@ export class WebSocketTransport
       return
     }
 
+    // 进入退避等待窗口：state 从这一刻起是 reconnecting，而不是停留在 disconnected——
+    // 业务层/前端需要能区分"正在自动重试"和"已经彻底放弃"。
+    this._state = 'reconnecting'
+
     const attempt = this._reconnectPolicy.attempts + 1 // 第几次重试（1-based）
     const delay = this._reconnectPolicy.nextDelay()
 
     this.emit('reconnecting', attempt, delay)
 
     setTimeout(() => {
-      // 如果已经主动关闭，或已经在连接中，不再重连
-      if (this._intentionalClose || this._state !== 'disconnected') return
+      // 如果已经主动关闭，或状态已经不是 reconnecting（比如外部显式调用了 connect()），不再重连
+      if (this._intentionalClose || this._state !== 'reconnecting') return
       this.connect().catch((err: unknown) => {
         this.emit(
           'error',

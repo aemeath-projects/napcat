@@ -244,4 +244,110 @@ describe('WebSocketTransport WebSocket 传输', () => {
     await transport.connect()
     expect(transport.state).toBe('connected')
   })
+
+  it('并发调用 connect() 时，旧连接延迟触发的 close 不应污染新连接的状态', async () => {
+    // 模拟场景：外部触发器（如连接池健康检查失败后调用的 forceReconnect）在
+    // transport 已经连接成功的情况下又调用了一次 connect()——这在当前架构下
+    // 完全可能发生：健康检查的 30 秒轮询与 napcat 自身的指数退避重连互不知晓。
+    transport = new WebSocketTransport({ url: server.url })
+    await transport.connect()
+    expect(transport.state).toBe('connected')
+
+    // 第二次 connect() 会新建一条 WebSocket 连接，但不会关闭/清理第一条——
+    // 服务器侧应能看到两条存活连接。
+    await transport.connect()
+    expect(transport.state).toBe('connected')
+    expect(server.connectionCount).toBe(2)
+
+    // 关闭第一条（旧、已被替换的）连接，模拟其延迟触发的 close 事件。
+    server.closeConnectionAt(0)
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
+    // 旧连接的关闭不应把当前（第二条、仍存活）连接的状态错误翻转为 disconnected。
+    expect(transport.state).toBe('connected')
+  })
+
+  it('退避等待期间 state 为 reconnecting，而不是 disconnected', async () => {
+    transport = new WebSocketTransport({
+      url: server.url,
+      reconnect: { initialDelay: 100, maxDelay: 200, jitter: 0 },
+    })
+    await transport.connect()
+
+    const reconnectingPromise = new Promise<void>((resolve) =>
+      transport.once('reconnecting', () => resolve()),
+    )
+    server.simulateDisconnect()
+    await reconnectingPromise
+
+    // initialDelay=100ms 还没到，此刻正处于退避等待窗口内
+    expect(transport.state).toBe('reconnecting')
+
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+    expect(transport.state).toBe('connected')
+  })
+
+  it('reconnecting 状态期间调用 disconnect() 立即返回并转为 disconnected，不等待 5 秒超时', async () => {
+    transport = new WebSocketTransport({
+      url: server.url,
+      reconnect: { initialDelay: 100, maxDelay: 200, jitter: 0 },
+    })
+    await transport.connect()
+
+    const reconnectingPromise = new Promise<void>((resolve) =>
+      transport.once('reconnecting', () => resolve()),
+    )
+    server.simulateDisconnect()
+    await reconnectingPromise
+    expect(transport.state).toBe('reconnecting')
+
+    let closeEmitted = false
+    transport.on('close', () => {
+      closeEmitted = true
+    })
+
+    const start = Date.now()
+    await transport.disconnect()
+    const elapsed = Date.now() - start
+
+    expect(transport.state).toBe('disconnected')
+    expect(elapsed).toBeLessThan(1000) // 远小于 5000ms 的兜底超时，证明走的是快速路径
+    expect(closeEmitted).toBe(true) // 与 SseTransport 和其余 disconnect() 路径保持一致：完成断开必须 emit close
+  })
+
+  it('ping 后在 pongTimeoutMs 内未收到 pong 时判定僵尸连接，主动断开触发重连', async () => {
+    // 替换 beforeEach 创建的默认 server，改用不自动回应 pong 的版本模拟僵尸连接
+    await server.close()
+    server = new MockNapCatWsServer({ autoPong: false })
+    await server.listen()
+
+    transport = new WebSocketTransport({
+      url: server.url,
+      pingIntervalMs: 30,
+      pongTimeoutMs: 30,
+      reconnect: { initialDelay: 20, maxDelay: 50, jitter: 0 },
+    })
+    await transport.connect()
+    expect(transport.state).toBe('connected')
+
+    const reconnectingPromise = new Promise<void>((resolve) =>
+      transport.once('reconnecting', () => resolve()),
+    )
+    await reconnectingPromise
+
+    expect(transport.state).toBe('reconnecting')
+  })
+
+  it('正常收到 pong 时不会被误判为僵尸连接', async () => {
+    transport = new WebSocketTransport({
+      url: server.url,
+      pingIntervalMs: 30,
+      pongTimeoutMs: 100,
+    })
+    await transport.connect()
+
+    // 等待超过至少一次 ping 间隔，确认默认 autoPong 的 mock server 正常回应，连接保持 connected
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    expect(transport.state).toBe('connected')
+  })
 })

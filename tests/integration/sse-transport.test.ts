@@ -302,4 +302,64 @@ describe('SseTransport SSE 传输', () => {
 
     await new Promise<void>((resolve) => badServer.close(() => resolve()))
   })
+
+  it('退避等待期间 state 为 reconnecting，而不是 disconnected', async () => {
+    transport = new SseTransport({
+      baseUrl: server.baseUrl,
+      reconnect: { initialDelay: 100, maxDelay: 200, jitter: 0 },
+    })
+    await transport.connect()
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+
+    const reconnectingPromise = new Promise<void>((resolve) =>
+      transport.once('reconnecting', () => resolve()),
+    )
+    server.closeAllSseConnections()
+    await reconnectingPromise
+
+    expect(transport.state).toBe('reconnecting')
+
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+    expect(transport.state).toBe('connected')
+  })
+
+  it('空闲超过 idleTimeoutMs 未收到任何数据时判定僵尸连接，主动断开触发重连', async () => {
+    transport = new SseTransport({
+      baseUrl: server.baseUrl,
+      idleTimeoutMs: 30,
+      reconnect: { initialDelay: 20, maxDelay: 50, jitter: 0 },
+    })
+    await transport.connect()
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+
+    // 不推送任何事件，mock server 默认不会主动发送保活数据，等待空闲超时
+    const reconnectingPromise = new Promise<void>((resolve) =>
+      transport.once('reconnecting', () => resolve()),
+    )
+    await reconnectingPromise
+
+    expect(transport.state).toBe('reconnecting')
+  })
+
+  it('持续收到事件时不会被误判为空闲僵尸连接', async () => {
+    transport = new SseTransport({
+      baseUrl: server.baseUrl,
+      idleTimeoutMs: 50,
+    })
+    await transport.connect()
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+
+    const interval = setInterval(() => {
+      server.pushEvent({
+        post_type: 'meta_event',
+        meta_event_type: 'heartbeat',
+        time: Date.now(),
+        self_id: 0,
+      })
+    }, 20)
+
+    await new Promise((resolve) => setTimeout(resolve, 120))
+    clearInterval(interval)
+    expect(transport.state).toBe('connected')
+  })
 })

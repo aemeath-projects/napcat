@@ -17,11 +17,13 @@ export class MockNapCatWsServer {
   private _port = 0
   private _reject = false
 
-  constructor() {
+  /** `autoPong: false` 时服务端收到 ping 不会自动回应 pong，用于模拟僵尸连接（假死但 TCP 仍开着）。 */
+  constructor(options: { autoPong?: boolean } = {}) {
     this.httpServer = createServer()
     this.wss = new WebSocketServer({
       server: this.httpServer,
       verifyClient: () => !this._reject,
+      autoPong: options.autoPong ?? true,
     })
     this.wss.on('connection', (ws) => {
       this.connections.add(ws)
@@ -87,6 +89,17 @@ export class MockNapCatWsServer {
     for (const ws of this.connections) {
       ws.close()
     }
+  }
+
+  /** 当前存活的连接数，用于断言"是否并发建立了多条连接"。 */
+  get connectionCount(): number {
+    return this.connections.size
+  }
+
+  /** 按建立顺序关闭第 index 条连接（0-based），用于模拟"旧连接延迟触发 close"的场景。 */
+  closeConnectionAt(index: number): void {
+    const ws = [...this.connections][index]
+    ws?.close()
   }
 
   async close(): Promise<void> {

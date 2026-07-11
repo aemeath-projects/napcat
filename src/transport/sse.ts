@@ -21,6 +21,8 @@ export interface SseTransportOptions {
   token?: string
   /** 断线重连配置，不传则不自动重连 */
   reconnect?: ReconnectOptions
+  /** 距离上次收到任意数据的空闲超时（ms），超过判定连接假死并主动断开。默认 60000。 */
+  idleTimeoutMs?: number
 }
 
 /** SSE Transport：事件接收走 GET /_events，API 调用走 HTTP POST。 */
@@ -31,16 +33,19 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
   private _reconnectPolicy: ReconnectPolicy | null = null
   private _connectionId = 0
   private _stableResetTimer: ReturnType<typeof setTimeout> | null = null
+  private _idleTimer: ReturnType<typeof setTimeout> | null = null
 
   private readonly _baseUrl: string
   private readonly _token: string | undefined
   private readonly _reconnectOpts: ReconnectOptions | undefined
+  private readonly _idleTimeoutMs: number
 
   constructor(opts: SseTransportOptions) {
     super()
     this._baseUrl = opts.baseUrl.replace(/\/$/, '')
     this._token = opts.token
     this._reconnectOpts = opts.reconnect
+    this._idleTimeoutMs = opts.idleTimeoutMs ?? 60000
     if (opts.reconnect) {
       this._reconnectPolicy = new ReconnectPolicy(opts.reconnect)
     }
@@ -121,11 +126,14 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
     let buffer = ''
     let shouldHandleClose = true
 
+    this._armIdleTimer(connectionId)
+
     try {
       for (;;) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const { done, value } = await reader.read()
         if (done) break
+        this._armIdleTimer(connectionId) // 收到任意数据，重置空闲计时
 
         buffer += decoder.decode(value as Uint8Array, { stream: true })
 
@@ -162,8 +170,22 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
       }
     } finally {
       reader.releaseLock()
-      // 只有当前连接 ID 匹配时才处理断开逻辑，避免旧流 finally 覆盖新连接状态
-      if (this._connectionId !== connectionId) {
+      // 只有当前连接 ID 匹配时才清理空闲计时器 / 处理断开逻辑，避免旧流的 finally
+      // 覆盖新连接的状态——_idleTimer 是单个共享字段，若不做这个保护，一个过期
+      // 连接的收尾清理会把刚建立的新连接的空闲计时器清掉，导致新连接的僵尸检测
+      // 永久失效（没有任何后续数据读取会重新安排这个定时器）。
+      //
+      // 未覆盖自动化测试的说明：这个竞态要求"旧连接的 finally 在新连接已经安排好
+      // 定时器之后才执行"。本仓库内部的重连调度（_scheduleReconnect）总是先
+      // setTimeout 延迟再调用 connect()，旧流的 finally 必然先于延迟后的 connect()
+      // 完成，天然不会与之重叠；只有外部代码在旧流还没结束时又手动调用一次
+      // connect() 才会暴露这个竞态——当前代码库没有任何调用点会这样做。用确定性
+      // 方式构造这个已经很窄的竞态需要控制内部字段或注入可控制的 ReadableStream，
+      // 会偏离本文件"真实 mock server + 真实定时器"的黑盒集成测试风格，权衡后选择
+      // 只保留这段防御性代码本身，不强行补一个测不到点上的测试。
+      if (this._connectionId === connectionId) {
+        this._clearIdleTimer()
+      } else {
         shouldHandleClose = false
       }
     }
@@ -202,12 +224,36 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
     }
   }
 
+  /**
+   * 重新安排空闲超时定时器（每次收到任意数据都调用一次以重置计时）。
+   * 超时未收到任何数据视为连接假死，主动中断当前流触发既有 close → 重连链路。
+   */
+  private _armIdleTimer(connectionId: number): void {
+    this._clearIdleTimer()
+    this._idleTimer = setTimeout(() => {
+      if (this._connectionId !== connectionId) return
+      this._abortController?.abort()
+    }, this._idleTimeoutMs)
+  }
+
+  /** 取消挂起的空闲超时定时器（若有）。 */
+  private _clearIdleTimer(): void {
+    if (this._idleTimer) {
+      clearTimeout(this._idleTimer)
+      this._idleTimer = null
+    }
+  }
+
   /** 按 ReconnectPolicy 安排下次重连。 */
   private _scheduleReconnect(): void {
     if (!this._reconnectPolicy?.canRetry()) {
       if (this._reconnectPolicy) this.emit('giveUp')
       return
     }
+
+    // 进入退避等待窗口：state 从这一刻起是 reconnecting，而不是停留在 disconnected。
+    this._state = 'reconnecting'
+
     const attempt = this._reconnectPolicy.attempts + 1
     const delay = this._reconnectPolicy.nextDelay()
     const snapshotId = this._connectionId
@@ -228,6 +274,7 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
   async disconnect(): Promise<void> {
     this._intentionalClose = true
     this._clearStableResetTimer()
+    this._clearIdleTimer()
     this._abortController?.abort()
     this._abortController = null
     this._state = 'disconnected'
