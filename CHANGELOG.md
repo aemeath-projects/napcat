@@ -2,6 +2,13 @@
 
 所有版本变更记录
 
+## [1.2.5](https://github.com/aemeath-projects/napcat/compare/v1.2.4...v1.2.5) (2026-07-11)
+
+
+### Bug 修复
+
+* **transport:** 重连成功需维持稳定期后才清零退避计数器 ([65fed84](https://github.com/aemeath-projects/napcat/commit/65fed843d9ad0a5f5d3ab3be2256e4a63f2826f5))
+
 ## [1.2.4](https://github.com/aemeath-projects/napcat/compare/v1.2.3...v1.2.4) (2026-07-08)
 
 
