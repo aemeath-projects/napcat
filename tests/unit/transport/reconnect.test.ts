@@ -91,4 +91,24 @@ describe('重连策略', () => {
     const policy = new ReconnectPolicy({ stableAfterMs: 5000 })
     expect(policy.stableAfterMs).toBe(5000)
   })
+
+  it('reset() 后 canRetry() 恢复为 true（即使之前已耗尽）', () => {
+    const policy = new ReconnectPolicy({ maxRetries: 2, jitter: 0 })
+    policy.nextDelay()
+    policy.nextDelay()
+    expect(policy.canRetry()).toBe(false)
+    policy.reset()
+    expect(policy.canRetry()).toBe(true)
+    expect(policy.attempts).toBe(0)
+  })
+
+  it('stableAfterMs = 0 为合法值', () => {
+    const policy = new ReconnectPolicy({ stableAfterMs: 0 })
+    expect(policy.stableAfterMs).toBe(0)
+  })
+
+  it('maxRetries = 0 时 canRetry() 立即返回 false', () => {
+    const policy = new ReconnectPolicy({ maxRetries: 0, jitter: 0 })
+    expect(policy.canRetry()).toBe(false)
+  })
 })

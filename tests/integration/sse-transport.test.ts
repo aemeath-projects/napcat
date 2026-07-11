@@ -162,6 +162,129 @@ describe('SseTransport SSE 传输', () => {
     await expect(transport.call('any_action', {})).rejects.toThrow('HTTP 请求失败')
   })
 
+  it('stableAfterMs=0 时连接立即清零：多次断连恢复不会累积耗尽重试预算', async () => {
+    transport = new SseTransport({
+      baseUrl: server.baseUrl,
+      reconnect: { initialDelay: 20, maxDelay: 50, jitter: 0, maxRetries: 2, stableAfterMs: 0 },
+    })
+    transport.on('error', () => {})
+    await transport.connect()
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+    await new Promise((resolve) => setTimeout(resolve, 20))
+
+    for (let i = 0; i < 5; i++) {
+      const outcome = new Promise<'connect' | 'giveUp'>((resolve) => {
+        transport.once('connect', () => resolve('connect'))
+        transport.once('giveUp', () => resolve('giveUp'))
+      })
+      server.closeAllSseConnections()
+      expect(await outcome).toBe('connect')
+      await new Promise((resolve) => setTimeout(resolve, 20))
+    }
+  })
+
+  it('connect 网络不可达时触发重连', async () => {
+    transport = new SseTransport({
+      baseUrl: 'http://127.0.0.1:19999',
+      reconnect: { initialDelay: 50, maxDelay: 200, jitter: 0, maxRetries: 2 },
+    })
+    transport.on('error', () => {})
+
+    const reconnectingPromise = new Promise<[number, number]>((resolve) =>
+      transport.once('reconnecting', (a, d) => resolve([a, d])),
+    )
+
+    await expect(transport.connect()).rejects.toThrow('SSE 连接失败')
+
+    const [attempt, delay] = await reconnectingPromise
+    expect(attempt).toBe(1)
+    expect(delay).toBe(50)
+  })
+
+  it('connect 返回 503 时触发重连并最终恢复', async () => {
+    server.setRejectSse(true)
+    transport = new SseTransport({
+      baseUrl: server.baseUrl,
+      reconnect: { initialDelay: 30, maxDelay: 100, jitter: 0, maxRetries: 5 },
+    })
+    transport.on('error', () => {})
+
+    const reconnectingPromise = new Promise<[number, number]>((resolve) =>
+      transport.once('reconnecting', (a, d) => resolve([a, d])),
+    )
+
+    await expect(transport.connect()).rejects.toThrow('SSE 连接失败：HTTP 503')
+
+    const [attempt, delay] = await reconnectingPromise
+    expect(attempt).toBe(1)
+    expect(delay).toBe(30)
+
+    server.setRejectSse(false)
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+    expect(transport.state).toBe('connected')
+  })
+
+  it('主动 disconnect 取消稳定期定时器，不影响再次连接与自动重连', async () => {
+    transport = new SseTransport({
+      baseUrl: server.baseUrl,
+      reconnect: { initialDelay: 30, maxDelay: 60, jitter: 0, maxRetries: 3, stableAfterMs: 500 },
+    })
+    transport.on('error', () => {})
+    await transport.connect()
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+
+    await transport.disconnect()
+
+    await transport.connect()
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+
+    const outcome = new Promise<'connect' | 'giveUp'>((resolve) => {
+      transport.once('connect', () => resolve('connect'))
+      transport.once('giveUp', () => resolve('giveUp'))
+    })
+    server.closeAllSseConnections()
+    expect(await outcome).toBe('connect')
+  })
+
+  it('connect 失败但未配置 reconnect 时不触发重连', async () => {
+    transport = new SseTransport({ baseUrl: 'http://127.0.0.1:19999' })
+
+    let reconnectingFired = false
+    transport.on('reconnecting', () => {
+      reconnectingFired = true
+    })
+
+    await expect(transport.connect()).rejects.toThrow('SSE 连接失败')
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    expect(reconnectingFired).toBe(false)
+  })
+
+  it('giveUp 后可通过显式 connect() 恢复连接', async () => {
+    transport = new SseTransport({
+      baseUrl: server.baseUrl,
+      reconnect: { initialDelay: 10, maxDelay: 20, jitter: 0, maxRetries: 2, stableAfterMs: 300 },
+    })
+    transport.on('error', () => {})
+    await transport.connect()
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+
+    // 快速闪断 2 轮（不等待稳定期），耗尽 maxRetries=2 的预算
+    for (let i = 0; i < 2; i++) {
+      const cp = new Promise<void>((resolve) => transport.once('connect', resolve))
+      server.closeAllSseConnections()
+      await cp
+    }
+    // 第 3 次断开：预算已耗尽，触发 giveUp
+    const giveUpPromise = new Promise<void>((resolve) => transport.once('giveUp', resolve))
+    server.closeAllSseConnections()
+    await giveUpPromise
+
+    // giveUp 后无需重建 transport，直接 connect() 即可恢复
+    await transport.connect()
+    await new Promise<void>((resolve) => transport.once('connect', resolve))
+    expect(transport.state).toBe('connected')
+  })
+
   it('SSE 返回非 200 状态时抛出 TransportError', async () => {
     // 创建一个返回 503 的 HTTP server 来模拟 SSE 服务不可用
     const badServer = createServer((_req, res) => {

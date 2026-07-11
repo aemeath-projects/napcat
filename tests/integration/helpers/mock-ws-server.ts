@@ -15,10 +15,14 @@ export class MockNapCatWsServer {
   private readonly handlers = new Map<string, (params: Record<string, unknown>) => MockResponse>()
   private readonly connections = new Set<WebSocket>()
   private _port = 0
+  private _reject = false
 
   constructor() {
     this.httpServer = createServer()
-    this.wss = new WebSocketServer({ server: this.httpServer })
+    this.wss = new WebSocketServer({
+      server: this.httpServer,
+      verifyClient: () => !this._reject,
+    })
     this.wss.on('connection', (ws) => {
       this.connections.add(ws)
       ws.on('message', (raw: RawData) => {
@@ -66,6 +70,11 @@ export class MockNapCatWsServer {
   onAction(action: string, handler: (params: Record<string, unknown>) => MockResponse): this {
     this.handlers.set(action, handler)
     return this
+  }
+
+  /** 设置 WebSocket 升级请求是否被拒绝，用于模拟服务临时拒绝接入的场景。 */
+  setReject(reject: boolean): void {
+    this._reject = reject
   }
 
   pushEvent(event: Record<string, unknown>): void {

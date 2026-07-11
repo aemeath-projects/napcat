@@ -194,4 +194,54 @@ describe('WebSocketTransport WebSocket 传输', () => {
     server.simulateDisconnect()
     await giveUpPromise
   })
+
+  it('stableAfterMs=0 时连接立即清零：多次断连恢复不会累积耗尽重试预算', async () => {
+    transport = new WebSocketTransport({
+      url: server.url,
+      reconnect: { initialDelay: 20, maxDelay: 50, jitter: 0, maxRetries: 2, stableAfterMs: 0 },
+    })
+    transport.on('error', () => {})
+    await transport.connect()
+    await new Promise((resolve) => setTimeout(resolve, 20))
+
+    for (let i = 0; i < 5; i++) {
+      const outcome = new Promise<'connect' | 'giveUp'>((resolve) => {
+        transport.once('connect', () => resolve('connect'))
+        transport.once('giveUp', () => resolve('giveUp'))
+      })
+      server.simulateDisconnect()
+      expect(await outcome).toBe('connect')
+      await new Promise((resolve) => setTimeout(resolve, 20))
+    }
+  })
+
+  it('giveUp 后可通过显式 connect() 恢复连接', async () => {
+    transport = new WebSocketTransport({
+      url: server.url,
+      reconnect: {
+        initialDelay: 10,
+        maxDelay: 20,
+        jitter: 0,
+        maxRetries: 2,
+        stableAfterMs: 60_000,
+      },
+    })
+    transport.on('error', () => {})
+    await transport.connect()
+
+    // 快速闪断 2 轮，不等待稳定期，耗尽 maxRetries=2 的预算
+    for (let i = 0; i < 2; i++) {
+      const cp = new Promise<void>((resolve) => transport.once('connect', resolve))
+      server.simulateDisconnect()
+      await cp
+    }
+    // 第 3 次断开：预算已耗尽，触发 giveUp
+    const giveUpPromise = new Promise<void>((resolve) => transport.once('giveUp', resolve))
+    server.simulateDisconnect()
+    await giveUpPromise
+
+    // giveUp 后无需重建 transport，connect() 返回的 Promise 本身即等待 open 事件
+    await transport.connect()
+    expect(transport.state).toBe('connected')
+  })
 })

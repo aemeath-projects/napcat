@@ -5,10 +5,16 @@ export class MockNapCatSseServer {
   private readonly sseClients = new Set<ServerResponse>()
   private readonly apiHandlers = new Map<string, (body: Record<string, unknown>) => unknown>()
   private _port = 0
+  private _rejectSse = false
 
   constructor() {
     this.httpServer = createServer((req, res) => {
       if (req.url === '/_events' && req.method === 'GET') {
+        if (this._rejectSse) {
+          res.writeHead(503)
+          res.end()
+          return
+        }
         // SSE 连接
         res.writeHead(200, {
           'Content-Type': 'text/event-stream',
@@ -76,6 +82,11 @@ export class MockNapCatSseServer {
       client.destroy()
     }
     this.sseClients.clear()
+  }
+
+  /** 设置 SSE 端点是否拒绝连接（返回 503），用于模拟服务临时不可用但可恢复的场景。 */
+  setRejectSse(reject: boolean): void {
+    this._rejectSse = reject
   }
 
   onAction(action: string, handler: (body: Record<string, unknown>) => unknown): this {
