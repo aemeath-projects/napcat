@@ -363,7 +363,7 @@ describe('SseTransport SSE 传输', () => {
     expect(transport.state).toBe('connected')
   })
 
-  // ========== 覆盖率缺口 ==========
+  /** 覆盖率缺口 **/
 
   it('reconnecting 事件携带正确的 attempt 和 delay 参数', async () => {
     transport = new SseTransport({
@@ -486,7 +486,7 @@ describe('SseTransport SSE 传输', () => {
     expect(transport.state).toBe('disconnected')
   })
 
-  // ========== 高并发鲁棒性 ==========
+  /** 高并发鲁棒性 **/
 
   it('快速交替 connect/disconnect 50 次，状态一致无异常', async () => {
     transport = new SseTransport({ baseUrl: server.baseUrl })

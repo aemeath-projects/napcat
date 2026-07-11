@@ -102,6 +102,14 @@ export class MockNapCatWsServer {
     ws?.close()
   }
 
+  /** 按建立顺序错误化第 index 条连接（0-based），销毁底层 socket 触发客户端 error 事件。 */
+  closeConnectionWithErrorAt(index: number): void {
+    const ws = [...this.connections][index]
+    if (ws) {
+      ;(ws as any)._socket?.destroy(new Error('Simulated connection error'))
+    }
+  }
+
   async close(): Promise<void> {
     for (const ws of this.connections) {
       ws.close()

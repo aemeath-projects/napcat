@@ -351,7 +351,7 @@ describe('WebSocketTransport WebSocket 传输', () => {
     expect(transport.state).toBe('connected')
   })
 
-  // ========== 覆盖率缺口 ==========
+  /** 覆盖率缺口 **/
 
   it('call() 在 reconnecting 状态下抛出 TransportError', async () => {
     transport = new WebSocketTransport({
@@ -490,7 +490,7 @@ describe('WebSocketTransport WebSocket 传输', () => {
     expect(transport.state).toBe('disconnected')
   })
 
-  // ========== 高并发鲁棒性 ==========
+  /** 高并发鲁棒性 **/
 
   it('快速交替 connect/disconnect 50 次，状态一致无异常', async () => {
     transport = new WebSocketTransport({ url: server.url })
@@ -604,5 +604,67 @@ describe('WebSocketTransport WebSocket 传输', () => {
 
     await new Promise<void>((resolve) => transport.once('connect', resolve))
     expect(transport.state).toBe('connected')
+  })
+
+  it('并发两次 connect()，旧连接的 onOpen 不污染新连接状态', async () => {
+    transport = new WebSocketTransport({ url: server.url })
+
+    const p1 = transport.connect()
+    await new Promise((resolve) => setTimeout(resolve, 10))
+    const p2 = transport.connect()
+
+    await p2
+    await p1.catch(() => {})
+
+    expect(transport.state).toBe('connected')
+    expect(server.connectionCount).toBe(2)
+
+    server.closeConnectionAt(0)
+    await new Promise((resolve) => setTimeout(resolve, 30))
+    expect(transport.state).toBe('connected')
+  })
+
+  it('旧连接触发 error 事件不冒泡到 transport', async () => {
+    transport = new WebSocketTransport({ url: server.url })
+    await transport.connect()
+    expect(transport.state).toBe('connected')
+
+    await transport.connect()
+    expect(server.connectionCount).toBe(2)
+
+    let errorEmitted = false
+    transport.on('error', () => {
+      errorEmitted = true
+    })
+
+    server.closeConnectionWithErrorAt(0)
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
+    expect(errorEmitted).toBe(false)
+    expect(transport.state).toBe('connected')
+  })
+
+  it('ping 间隔检测到 connectionId 不匹配时自清并退出', async () => {
+    transport = new WebSocketTransport({
+      url: server.url,
+      pingIntervalMs: 1,
+      pongTimeoutMs: 100,
+    })
+    await transport.connect()
+    await new Promise((resolve) => setTimeout(resolve, 3))
+
+    // fire-and-forget：不等待 connect 完成，仅利用它递增 _connectionId
+    // Node.js 定时器阶段先于 poll(I/O) 阶段，1ms 间隔会在新 onOpen 清除之前触发
+    for (let i = 0; i < 10; i++) {
+      transport.connect().catch(() => {})
+    }
+
+    // 等待旧间隔数次触发 + 新连接 onOpen 尘埃落定
+    await new Promise((resolve) => setTimeout(resolve, 30))
+
+    await transport.connect()
+    expect(transport.state).toBe('connected')
+    await transport.disconnect()
+    expect(transport.state).toBe('disconnected')
   })
 })
