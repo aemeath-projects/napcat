@@ -2,6 +2,13 @@
 
 所有版本变更记录
 
+## [1.2.6](https://github.com/aemeath-projects/napcat/compare/v1.2.5...v1.2.6) (2026-07-11)
+
+
+### 重构
+
+* **transport:** 重连决策收敛为唯一权威，新增 reconnecting 状态与僵尸连接检测 ([56b874a](https://github.com/aemeath-projects/napcat/commit/56b874a0c9e50cfd1697955b81b64a500e6bb8ba))
+
 ## [1.2.5](https://github.com/aemeath-projects/napcat/compare/v1.2.4...v1.2.5) (2026-07-11)
 
 
