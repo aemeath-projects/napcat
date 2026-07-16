@@ -511,4 +511,26 @@ describe('群 API', () => {
       reason: 'no',
     })
   })
+
+  it('markGroupMsgAsRead 传入 userId 和 messageId', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.markGroupMsgAsRead(1001, 9999, 'msg_123')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('mark_group_msg_as_read', {
+      group_id: 1001,
+      user_id: 9999,
+      message_id: 'msg_123',
+    })
+  })
+
+  it('setGroupAddRequest 仅传 flag 省略 approve 和 reason', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.setGroupAddRequest('flag_min')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('set_group_add_request', {
+      flag: 'flag_min',
+      approve: undefined,
+      reason: undefined,
+    })
+  })
 })

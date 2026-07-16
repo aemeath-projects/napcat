@@ -132,4 +132,51 @@ describe('好友 API', () => {
       user_id: 9999,
     })
   })
+
+  it('markPrivateMsgAsRead 传入 groupId 和 messageId', async () => {
+    const client = mockClient()
+    const api = new FriendApi(client)
+    await api.markPrivateMsgAsRead(9999, 1001, 'msg_001')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
+      'mark_private_msg_as_read',
+      {
+        user_id: 9999,
+        group_id: 1001,
+        message_id: 'msg_001',
+      },
+    )
+  })
+
+  it('getProfileLike 传入 start 和 count', async () => {
+    const client = mockClient({ like_list: [] })
+    const api = new FriendApi(client)
+    await api.getProfileLike(0, 20)
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('get_profile_like', {
+      start: 0,
+      count: 20,
+    })
+  })
+
+  it('fetchEmojiLike 传入 cookie', async () => {
+    const client = mockClient({ emoji_likes_list: [] })
+    const api = new FriendApi(client)
+    await api.fetchEmojiLike(12345, '128514', 1, 20, 'cookie_abc')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('fetch_emoji_like', {
+      message_id: 12345,
+      emoji_id: '128514',
+      emoji_type: 1,
+      count: 20,
+      cookie: 'cookie_abc',
+    })
+  })
+
+  it('sendLike 省略 times 参数', async () => {
+    const client = mockClient()
+    const api = new FriendApi(client)
+    await api.sendLike(9999)
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('send_like', {
+      user_id: 9999,
+      times: undefined,
+    })
+  })
 })

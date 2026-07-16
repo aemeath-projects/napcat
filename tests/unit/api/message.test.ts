@@ -201,4 +201,40 @@ describe('消息 API', () => {
       },
     )
   })
+  it('getRecentContact 不传 count', async () => {
+    const client = mockClient(0, [])
+    const api = new MessageApi(client)
+    await api.getRecentContact()
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('get_recent_contact', {
+      count: undefined,
+    })
+  })
+  it('getGroupMsgHistory 传入全部可选参数', async () => {
+    const client = mockClient(0, [])
+    const api = new MessageApi(client)
+    await api.getGroupMsgHistory(1001, 100, 20, true, true, true, true)
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('get_group_msg_history', {
+      group_id: 1001,
+      message_seq: 100,
+      count: 20,
+      reverse_order: true,
+      disable_get_url: true,
+      parse_mult_msg: true,
+      quick_reply: true,
+    })
+  })
+  it('getFriendMsgHistory 传入全部可选参数', async () => {
+    const client = mockClient(0, [])
+    const api = new MessageApi(client)
+    await api.getFriendMsgHistory(9999, 50, 10, true, true, true, true)
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('get_friend_msg_history', {
+      user_id: 9999,
+      message_seq: 50,
+      count: 10,
+      reverse_order: true,
+      disable_get_url: true,
+      parse_mult_msg: true,
+      quick_reply: true,
+    })
+  })
 })

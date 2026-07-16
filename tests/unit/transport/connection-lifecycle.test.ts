@@ -159,5 +159,164 @@ describe('ConnectionLifecycleManager', () => {
       await vi.waitFor(() => expect(onError).toHaveBeenCalledOnce())
       expect(onError).toHaveBeenCalledWith(expect.any(Error))
     })
+
+    it('连续多次 scheduleReconnect，onReconnecting 接收递增的 attempt', () => {
+      vi.useFakeTimers()
+      const policy = new ReconnectPolicy({ initialDelay: 50, jitter: 0 })
+      const manager = new ConnectionLifecycleManager(policy)
+      const onReconnecting = vi.fn()
+
+      manager.scheduleReconnect({
+        isExpired: () => false,
+        doConnect: vi.fn().mockResolvedValue(undefined),
+        onReconnecting,
+        onGiveUp: vi.fn(),
+        onError: vi.fn(),
+      })
+      expect(onReconnecting).toHaveBeenCalledWith(1, 50)
+
+      manager.scheduleReconnect({
+        isExpired: () => false,
+        doConnect: vi.fn().mockResolvedValue(undefined),
+        onReconnecting,
+        onGiveUp: vi.fn(),
+        onError: vi.fn(),
+      })
+      expect(onReconnecting).toHaveBeenCalledWith(2, 100)
+
+      manager.scheduleReconnect({
+        isExpired: () => false,
+        doConnect: vi.fn().mockResolvedValue(undefined),
+        onReconnecting,
+        onGiveUp: vi.fn(),
+        onError: vi.fn(),
+      })
+      expect(onReconnecting).toHaveBeenCalledWith(3, 200)
+    })
+
+    it('scheduleReconnect 配合 jitter，延迟在 [base*(1-jitter), base*(1+jitter)] 范围内', () => {
+      vi.useFakeTimers()
+      const policy = new ReconnectPolicy({ initialDelay: 1000, jitter: 0.3 })
+      const manager = new ConnectionLifecycleManager(policy)
+      const onReconnecting = vi.fn()
+
+      manager.scheduleReconnect({
+        isExpired: () => false,
+        doConnect: vi.fn().mockResolvedValue(undefined),
+        onReconnecting,
+        onGiveUp: vi.fn(),
+        onError: vi.fn(),
+      })
+
+      const delay = onReconnecting.mock.calls[0]?.[1] as number
+      expect(delay).toBeGreaterThanOrEqual(700)
+      expect(delay).toBeLessThanOrEqual(1300)
+    })
+
+    it('doConnect 成功时不调用 onError 和 onGiveUp', async () => {
+      vi.useFakeTimers()
+      const policy = new ReconnectPolicy({ initialDelay: 50, jitter: 0 })
+      const manager = new ConnectionLifecycleManager(policy)
+      const onError = vi.fn()
+      const onGiveUp = vi.fn()
+
+      manager.scheduleReconnect({
+        isExpired: () => false,
+        doConnect: vi.fn().mockResolvedValue(undefined),
+        onReconnecting: vi.fn(),
+        onGiveUp,
+        onError,
+      })
+
+      await vi.advanceTimersByTimeAsync(50)
+      expect(onError).not.toHaveBeenCalled()
+      expect(onGiveUp).not.toHaveBeenCalled()
+    })
+
+    it('nextConnectionId 快照配合 isExpired 模拟 SSE 连接身份过期判定', async () => {
+      vi.useFakeTimers()
+      const policy = new ReconnectPolicy({ initialDelay: 50, jitter: 0 })
+      const manager = new ConnectionLifecycleManager(policy)
+      const doConnect = vi.fn().mockResolvedValue(undefined)
+
+      const snapshotId = manager.nextConnectionId()
+      expect(snapshotId).toBe(1)
+
+      manager.scheduleReconnect({
+        isExpired: () => manager.connectionId !== snapshotId,
+        doConnect,
+        onReconnecting: vi.fn(),
+        onGiveUp: vi.fn(),
+        onError: vi.fn(),
+      })
+
+      manager.nextConnectionId()
+      expect(manager.connectionId).toBe(2)
+
+      await vi.advanceTimersByTimeAsync(50)
+      expect(doConnect).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('armStableResetTimer / clearStableResetTimer 边界', () => {
+    it('clearStableResetTimer 在无定时器时调用不抛异常', () => {
+      const policy = new ReconnectPolicy({ stableAfterMs: 100 })
+      const manager = new ConnectionLifecycleManager(policy)
+      expect(() => manager.clearStableResetTimer()).not.toThrow()
+    })
+
+    it('armStableResetTimer 配合 stableAfterMs=0 立即调用 policy.reset()', () => {
+      vi.useFakeTimers()
+      const policy = new ReconnectPolicy({ stableAfterMs: 0 })
+      const resetSpy = vi.spyOn(policy, 'reset')
+      const manager = new ConnectionLifecycleManager(policy)
+
+      manager.armStableResetTimer()
+      vi.advanceTimersByTime(0)
+
+      expect(resetSpy).toHaveBeenCalledOnce()
+    })
+  })
+
+  describe('nextConnectionId / connectionId 边界', () => {
+    it('初始 connectionId 为 0', () => {
+      const manager = new ConnectionLifecycleManager(null)
+      expect(manager.connectionId).toBe(0)
+    })
+
+    it('多次 nextConnectionId 调用保持严格递增', () => {
+      const manager = new ConnectionLifecycleManager(null)
+      for (let i = 1; i <= 100; i++) {
+        expect(manager.nextConnectionId()).toBe(i)
+      }
+      expect(manager.connectionId).toBe(100)
+    })
+  })
+
+  describe('无 reconnectPolicy 时的完整行为', () => {
+    it('armStableResetTimer 无操作，clearStableResetTimer 无操作', () => {
+      const manager = new ConnectionLifecycleManager(null)
+      expect(() => manager.armStableResetTimer()).not.toThrow()
+      expect(() => manager.clearStableResetTimer()).not.toThrow()
+    })
+
+    it('scheduleReconnect 静默不做任何事，不调用任何回调', () => {
+      const manager = new ConnectionLifecycleManager(null)
+      const onGiveUp = vi.fn()
+      const onReconnecting = vi.fn()
+      const onError = vi.fn()
+
+      manager.scheduleReconnect({
+        isExpired: () => false,
+        doConnect: vi.fn(),
+        onReconnecting,
+        onGiveUp,
+        onError,
+      })
+
+      expect(onGiveUp).not.toHaveBeenCalled()
+      expect(onReconnecting).not.toHaveBeenCalled()
+      expect(onError).not.toHaveBeenCalled()
+    })
   })
 })
