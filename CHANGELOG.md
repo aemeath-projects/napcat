@@ -2,6 +2,13 @@
 
 所有版本变更记录
 
+## [1.2.7](https://github.com/aemeath-projects/napcat/compare/v1.2.6...v1.2.7) (2026-07-16)
+
+
+### 重构
+
+* **api,transport:** 方法归类对齐上游业务域分类，连接编排与令牌提取去重 ([09c4fa6](https://github.com/aemeath-projects/napcat/commit/09c4fa62d642e9cc83a2973e9ac167d1ba9271f5))
+
 ## [1.2.6](https://github.com/aemeath-projects/napcat/compare/v1.2.5...v1.2.6) (2026-07-11)
 
 
