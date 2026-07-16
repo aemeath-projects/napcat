@@ -72,13 +72,9 @@ export class MessageApi extends BaseApi {
     return this.invoke('mark_msg_as_read', { message_id: messageId })
   }
 
-  /** 标记群聊消息已读。 */
-  markGroupMsgAsRead(groupId: number, userId?: number, messageId?: string): Promise<Result<void>> {
-    return this.invoke('mark_group_msg_as_read', {
-      group_id: groupId,
-      user_id: userId,
-      message_id: messageId,
-    })
+  /** 标记所有消息已读。 */
+  markAllAsRead(): Promise<Result<void>> {
+    return this.invoke('_mark_all_as_read')
   }
 
   /** 发送戳一戳（私聊或群聊）。 */

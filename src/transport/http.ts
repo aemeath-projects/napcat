@@ -7,6 +7,7 @@ import { snakeToCamel } from '../utils'
 
 import { apiCall } from './http-client.js'
 import type { Transport, TransportState } from './interface.js'
+import { extractTokenFromRequest } from './token.js'
 
 /** Event server 监听配置。 */
 export interface HttpEventServerOptions {
@@ -179,21 +180,6 @@ export class HttpTransport extends TypedEventEmitter<TransportEventMap> implemen
    * 其次才从 URL query string 的 `access_token` 提取作为兜底。
    */
   private _extractToken(req: IncomingMessage): string | undefined {
-    // 优先从 Authorization: Bearer <token>
-    const authHeader = req.headers.authorization
-    if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
-      return authHeader.slice(7)
-    }
-
-    // 其次从 URL query string access_token
-    const url = req.url ?? ''
-    const queryStart = url.indexOf('?')
-    if (queryStart !== -1) {
-      const qs = new URLSearchParams(url.slice(queryStart + 1))
-      const fromQuery = qs.get('access_token')
-      if (fromQuery) return fromQuery
-    }
-
-    return undefined
+    return extractTokenFromRequest(req, { headerFirst: true })
   }
 }

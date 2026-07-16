@@ -145,15 +145,12 @@ describe('消息 API', () => {
       messages: [],
     })
   })
-  it('markGroupMsgAsRead 调用 mark_group_msg_as_read', async () => {
+
+  it('markAllAsRead 全部标记已读', async () => {
     const client = mockClient()
     const api = new MessageApi(client)
-    await api.markGroupMsgAsRead(1001)
-    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('mark_group_msg_as_read', {
-      group_id: 1001,
-      user_id: undefined,
-      message_id: undefined,
-    })
+    await api.markAllAsRead()
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('_mark_all_as_read', {})
   })
   it('带 groupId 的 sendPoke 调用 send_poke', async () => {
     const client = mockClient()

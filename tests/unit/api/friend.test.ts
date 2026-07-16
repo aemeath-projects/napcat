@@ -35,16 +35,6 @@ describe('好友 API', () => {
       remark: 'remark',
     })
   })
-  it('setGroupAddRequest 处理群添加请求', async () => {
-    const client = mockClient()
-    const api = new FriendApi(client)
-    await api.setGroupAddRequest('flag456', false, 'no')
-    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('set_group_add_request', {
-      flag: 'flag456',
-      approve: false,
-      reason: 'no',
-    })
-  })
   it('getFriendsWithCategory 获取带分类的好友列表', async () => {
     const client = mockClient([])
     const api = new FriendApi(client)
@@ -131,6 +121,14 @@ describe('好友 API', () => {
     const api = new FriendApi(client)
     await api.deleteFriend(9999)
     expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('delete_friend', {
+      user_id: 9999,
+    })
+  })
+  it('friendPoke 好友戳一戳', async () => {
+    const client = mockClient()
+    const api = new FriendApi(client)
+    await api.friendPoke(9999)
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('friend_poke', {
       user_id: 9999,
     })
   })

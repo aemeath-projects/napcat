@@ -9,6 +9,7 @@ import type { ApiResponse, TransportEventMap } from '../types'
 
 import type { Transport, TransportState } from './interface.js'
 import { handleIncomingMessage, type PendingCall } from './message.js'
+import { extractTokenFromRequest } from './token.js'
 
 /** ReverseWebSocketTransport 构造参数。 */
 export interface ReverseWebSocketTransportOptions {
@@ -230,21 +231,6 @@ export class ReverseWebSocketTransport
    * 其次才从 `Authorization: Bearer` header 提取作为兜底。
    */
   private _getTokenFromRequest(req: IncomingMessage): string | undefined {
-    // 优先从 URL query string 取 access_token
-    const url = req.url ?? ''
-    const queryStart = url.indexOf('?')
-    if (queryStart !== -1) {
-      const qs = new URLSearchParams(url.slice(queryStart + 1))
-      const fromQuery = qs.get('access_token')
-      if (fromQuery) return fromQuery
-    }
-
-    // 其次从 Authorization: Bearer <token> header 取
-    const authHeader = req.headers.authorization
-    if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
-      return authHeader.slice(7)
-    }
-
-    return undefined
+    return extractTokenFromRequest(req, { headerFirst: false })
   }
 }

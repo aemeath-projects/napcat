@@ -10,23 +10,6 @@ function mockClient(data: unknown = null) {
 }
 
 describe('拓展 API', () => {
-  it('groupPoke 群戳一戳', async () => {
-    const client = mockClient()
-    const api = new ExtensionApi(client)
-    await api.groupPoke(1001, 9999)
-    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('group_poke', {
-      group_id: 1001,
-      user_id: 9999,
-    })
-  })
-  it('friendPoke 好友戳一戳', async () => {
-    const client = mockClient()
-    const api = new ExtensionApi(client)
-    await api.friendPoke(9999)
-    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('friend_poke', {
-      user_id: 9999,
-    })
-  })
   it('translateEn2Zh 英译中', async () => {
     const client = mockClient(['你好'])
     const api = new ExtensionApi(client)
@@ -160,24 +143,7 @@ describe('拓展 API', () => {
       count: undefined,
     })
   })
-  it('markAllAsRead 全部标记已读', async () => {
-    const client = mockClient()
-    const api = new ExtensionApi(client)
-    await api.markAllAsRead()
-    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('_mark_all_as_read', {})
-  })
-  it('forwardGroupSingleMsg 转发群单条消息', async () => {
-    const client = mockClient()
-    const api = new ExtensionApi(client)
-    await api.forwardGroupSingleMsg(1001, 'msg_001')
-    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
-      'forward_group_single_msg',
-      {
-        group_id: 1001,
-        message_id: 'msg_001',
-      },
-    )
-  })
+
   it('getMiniAppArk 获取小程序 Ark 签名', async () => {
     const client = mockClient({ data: 'ark_signature' })
     const api = new ExtensionApi(client)

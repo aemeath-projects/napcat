@@ -466,4 +466,49 @@ describe('群 API', () => {
       user_id: [9998, 9999],
     })
   })
+
+  it('groupPoke 群戳一戳', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.groupPoke(1001, 9999)
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('group_poke', {
+      group_id: 1001,
+      user_id: 9999,
+    })
+  })
+
+  it('forwardGroupSingleMsg 转发群单条消息', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.forwardGroupSingleMsg(1001, 'msg_001')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
+      'forward_group_single_msg',
+      {
+        group_id: 1001,
+        message_id: 'msg_001',
+      },
+    )
+  })
+
+  it('markGroupMsgAsRead 调用 mark_group_msg_as_read', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.markGroupMsgAsRead(1001)
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('mark_group_msg_as_read', {
+      group_id: 1001,
+      user_id: undefined,
+      message_id: undefined,
+    })
+  })
+
+  it('setGroupAddRequest 处理群添加请求', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.setGroupAddRequest('flag456', false, 'no')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('set_group_add_request', {
+      flag: 'flag456',
+      approve: false,
+      reason: 'no',
+    })
+  })
 })

@@ -140,6 +140,33 @@ export class GroupApi extends BaseApi {
     return this.invoke('get_group_ignored_notifies')
   }
 
+  /** 群聊戳一戳。 */
+  groupPoke(groupId: number, userId: number): Promise<Result<void>> {
+    return this.invoke('group_poke', { group_id: groupId, user_id: userId })
+  }
+
+  /** 转发单条消息到群聊。 */
+  forwardGroupSingleMsg(groupId: number, messageId: string): Promise<Result<void>> {
+    return this.invoke('forward_group_single_msg', {
+      group_id: groupId,
+      message_id: messageId,
+    })
+  }
+
+  /** 标记群聊消息已读。 */
+  markGroupMsgAsRead(groupId: number, userId?: number, messageId?: string): Promise<Result<void>> {
+    return this.invoke('mark_group_msg_as_read', {
+      group_id: groupId,
+      user_id: userId,
+      message_id: messageId,
+    })
+  }
+
+  /** 处理加群请求／邀请。 */
+  setGroupAddRequest(flag: string, approve?: boolean, reason?: string): Promise<Result<void>> {
+    return this.invoke('set_group_add_request', { flag, approve, reason })
+  }
+
   /** 获取群禁言列表。 */
   getGroupShutList(groupId: number): Promise<Result<GroupShutMember[]>> {
     return this.invoke('get_group_shut_list', { group_id: groupId })

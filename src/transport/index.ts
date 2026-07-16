@@ -2,6 +2,11 @@ export type { Transport, TransportState } from './interface.js'
 export type { PendingCall } from './message.js'
 export { ReconnectPolicy, type ReconnectOptions } from './reconnect.js'
 export {
+  ConnectionLifecycleManager,
+  type ScheduleReconnectOptions,
+} from './connection-lifecycle.js'
+export { extractTokenFromRequest } from './token.js'
+export {
   WebSocketTransport,
   type WebSocketTransportOptions,
   type WsTransportEventMap,

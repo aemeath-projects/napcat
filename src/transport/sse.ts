@@ -3,6 +3,7 @@ import { TypedEventEmitter, TransportError } from '../core'
 import type { ApiResponse, OneBotEvent, TransportEventMap } from '../types'
 import { snakeToCamel } from '../utils'
 
+import { ConnectionLifecycleManager } from './connection-lifecycle.js'
 import { apiCall } from './http-client.js'
 import type { Transport, TransportState } from './interface.js'
 import { ReconnectPolicy, type ReconnectOptions } from './reconnect.js'
@@ -31,8 +32,7 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
   private _abortController: AbortController | null = null
   private _intentionalClose = false
   private _reconnectPolicy: ReconnectPolicy | null = null
-  private _connectionId = 0
-  private _stableResetTimer: ReturnType<typeof setTimeout> | null = null
+  private readonly _lifecycle: ConnectionLifecycleManager
   private _idleTimer: ReturnType<typeof setTimeout> | null = null
 
   private readonly _baseUrl: string
@@ -49,6 +49,7 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
     if (opts.reconnect) {
       this._reconnectPolicy = new ReconnectPolicy(opts.reconnect)
     }
+    this._lifecycle = new ConnectionLifecycleManager(this._reconnectPolicy)
   }
 
   get state(): TransportState {
@@ -64,7 +65,7 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
     this._intentionalClose = false
     this._state = 'connecting'
     this._abortController = new AbortController()
-    const connectionId = ++this._connectionId
+    const connectionId = this._lifecycle.nextConnectionId()
 
     const url = `${this._baseUrl}/_events`
     const headers: Record<string, string> = { Accept: 'text/event-stream' }
@@ -107,7 +108,7 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
     }
 
     this._state = 'connected'
-    this._armStableResetTimer()
+    this._lifecycle.armStableResetTimer()
 
     // setTimeout(0) 推迟 emit 到下一个宏任务：
     // connect() 先 resolve → 调用方注册 once('connect', ...) → 宏任务触发 emit
@@ -183,7 +184,7 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
       // 方式构造这个已经很窄的竞态需要控制内部字段或注入可控制的 ReadableStream，
       // 会偏离本文件"真实 mock server + 真实定时器"的黑盒集成测试风格，权衡后选择
       // 只保留这段防御性代码本身，不强行补一个测不到点上的测试。
-      if (this._connectionId === connectionId) {
+      if (this._lifecycle.connectionId === connectionId) {
         this._clearIdleTimer()
       } else {
         shouldHandleClose = false
@@ -194,33 +195,11 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
       if (this._state === 'connected') {
         this._state = 'disconnected'
       }
-      this._clearStableResetTimer()
+      this._lifecycle.clearStableResetTimer()
       if (!this._intentionalClose) {
         this.emit('close')
         this._scheduleReconnect()
       }
-    }
-  }
-
-  /**
-   * 连接成功后，等待连接维持满 reconnectPolicy.stableAfterMs 才清零重连计数器；
-   * 期间若再次断开（_readSseStream 会调用 _clearStableResetTimer）则取消，
-   * 避免疯狂闪断、从未真正稳定过的连接因为短暂的重连成功而无限重试、永远不耗尽预算。
-   */
-  private _armStableResetTimer(): void {
-    if (!this._reconnectPolicy) return
-    this._clearStableResetTimer()
-    this._stableResetTimer = setTimeout(() => {
-      this._reconnectPolicy?.reset()
-      this._stableResetTimer = null
-    }, this._reconnectPolicy.stableAfterMs)
-  }
-
-  /** 取消待触发的稳定期清零定时器（若有）。 */
-  private _clearStableResetTimer(): void {
-    if (this._stableResetTimer) {
-      clearTimeout(this._stableResetTimer)
-      this._stableResetTimer = null
     }
   }
 
@@ -231,7 +210,7 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
   private _armIdleTimer(connectionId: number): void {
     this._clearIdleTimer()
     this._idleTimer = setTimeout(() => {
-      if (this._connectionId !== connectionId) return
+      if (this._lifecycle.connectionId !== connectionId) return
       this._abortController?.abort()
     }, this._idleTimeoutMs)
   }
@@ -246,34 +225,30 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
 
   /** 按 ReconnectPolicy 安排下次重连。 */
   private _scheduleReconnect(): void {
-    if (!this._reconnectPolicy?.canRetry()) {
-      if (this._reconnectPolicy) this.emit('giveUp')
-      return
-    }
-
-    // 进入退避等待窗口：state 从这一刻起是 reconnecting，而不是停留在 disconnected。
-    this._state = 'reconnecting'
-
-    const attempt = this._reconnectPolicy.attempts + 1
-    const delay = this._reconnectPolicy.nextDelay()
-    const snapshotId = this._connectionId
-    this.emit('reconnecting', attempt, delay)
-    setTimeout(() => {
+    const snapshotId = this._lifecycle.connectionId
+    this._lifecycle.scheduleReconnect({
       // 连接 ID 已变说明有新的主动连接，跳过此次重连
-      if (this._intentionalClose || this._connectionId !== snapshotId) return
-      this.connect().catch((err: unknown) => {
+      isExpired: () => this._intentionalClose || this._lifecycle.connectionId !== snapshotId,
+      doConnect: () => this.connect(),
+      onReconnecting: (attempt, delay) => {
+        // 进入退避等待窗口：state 从这一刻起是 reconnecting，而不是停留在 disconnected。
+        this._state = 'reconnecting'
+        this.emit('reconnecting', attempt, delay)
+      },
+      onGiveUp: () => this.emit('giveUp'),
+      onError: (err) => {
         this.emit(
           'error',
           new TransportError(`SSE 重连失败：${err instanceof Error ? err.message : String(err)}`),
         )
-      })
-    }, delay)
+      },
+    })
   }
 
   /** 断开 SSE 连接，state → disconnected。 */
   async disconnect(): Promise<void> {
     this._intentionalClose = true
-    this._clearStableResetTimer()
+    this._lifecycle.clearStableResetTimer()
     this._clearIdleTimer()
     this._abortController?.abort()
     this._abortController = null

@@ -5,16 +5,6 @@ import { BaseApi } from './base.js'
 
 /** NapCat 扩展 API 模块。 */
 export class ExtensionApi extends BaseApi {
-  /** 私聊戳一戳。 */
-  friendPoke(userId: number): Promise<Result<void>> {
-    return this.invoke('friend_poke', { user_id: userId })
-  }
-
-  /** 群聊戳一戳。 */
-  groupPoke(groupId: number, userId: number): Promise<Result<void>> {
-    return this.invoke('group_poke', { group_id: groupId, user_id: userId })
-  }
-
   /** 设置消息表情回应。 */
   setMsgEmojiLike(messageId: number, emojiId: string): Promise<Result<void>> {
     return this.invoke('set_msg_emoji_like', { message_id: messageId, emoji_id: emojiId })
@@ -100,19 +90,6 @@ export class ExtensionApi extends BaseApi {
   /** 获取收藏表情。 */
   fetchCustomFace(count?: number): Promise<Result<unknown>> {
     return this.invoke('fetch_custom_face', { count })
-  }
-
-  /** 标记所有消息已读。 */
-  markAllAsRead(): Promise<Result<void>> {
-    return this.invoke('_mark_all_as_read')
-  }
-
-  /** 转发单条消息到群聊。 */
-  forwardGroupSingleMsg(groupId: number, messageId: string): Promise<Result<void>> {
-    return this.invoke('forward_group_single_msg', {
-      group_id: groupId,
-      message_id: messageId,
-    })
   }
 
   /* 4.18.9+ 扩展端点 */

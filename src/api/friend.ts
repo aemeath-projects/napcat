@@ -40,11 +40,6 @@ export class FriendApi extends BaseApi {
     return this.invoke('set_friend_add_request', { flag, approve, remark })
   }
 
-  /** 处理加群请求／邀请。 */
-  setGroupAddRequest(flag: string, approve?: boolean, reason?: string): Promise<Result<void>> {
-    return this.invoke('set_group_add_request', { flag, approve, reason })
-  }
-
   /** 标记私聊消息已读。 */
   markPrivateMsgAsRead(
     userId: number,
@@ -88,5 +83,10 @@ export class FriendApi extends BaseApi {
   /** 获取用户在线状态（NapCat 扩展）。 */
   ncGetUserStatus(userId: number): Promise<Result<UserStatus>> {
     return this.invoke('nc_get_user_status', { user_id: userId })
+  }
+
+  /** 私聊戳一戳。 */
+  friendPoke(userId: number): Promise<Result<void>> {
+    return this.invoke('friend_poke', { user_id: userId })
   }
 }
