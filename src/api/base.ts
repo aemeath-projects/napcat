@@ -1,4 +1,5 @@
-import type { NapCatClient, Result } from '../core'
+import type { NapCatClient } from '../core/client.js'
+import type { Result } from '../core/result.js'
 import type { ApiResponse } from '../types'
 import { snakeToCamel, camelToSnake } from '../utils'
 
