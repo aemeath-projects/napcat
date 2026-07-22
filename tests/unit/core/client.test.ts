@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 
 import { NapCatClient } from '../../../src/core'
-import type { Transport } from '../../../src/transport/interface.js'
+import type { Transport } from '../../../src/transport'
 import type { TransportEventMap } from '../../../src/types'
 
 function createMockTransport(overrides: Partial<Transport> = {}): Transport {

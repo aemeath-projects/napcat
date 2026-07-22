@@ -1,6 +1,6 @@
 import type { EventEmitter } from 'node:events'
 
-import type { Transport } from '../transport/interface.js'
+import type { Transport } from '../transport'
 import type { ApiResponse, OneBotEvent, ClientEventMap } from '../types'
 
 import { TypedEventEmitter } from './emitter.js'

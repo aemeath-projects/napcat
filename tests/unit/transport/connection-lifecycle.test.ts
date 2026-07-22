@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 
-import { ConnectionLifecycleManager } from '../../../src/transport/connection-lifecycle.js'
-import { ReconnectPolicy } from '../../../src/transport/reconnect.js'
+import { ConnectionLifecycleManager, ReconnectPolicy } from '../../../src/transport'
 
 describe('ConnectionLifecycleManager', () => {
   afterEach(() => {

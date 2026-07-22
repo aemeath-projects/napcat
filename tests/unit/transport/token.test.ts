@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { extractTokenFromRequest } from '../../../src/transport/token.js'
+import { extractTokenFromRequest } from '../../../src/transport'
 
 function makeReq(
   url: string,

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { snakeToCamel } from '../../../src/utils/convert.js'
+import { snakeToCamel } from '../../../src/utils'
 
 describe('snakeToCamel', () => {
   it('converts snake_case keys to camelCase', () => {

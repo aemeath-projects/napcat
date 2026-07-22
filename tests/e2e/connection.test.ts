@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 
-import { NapCatClient, WebSocketTransport } from '../../src/main.js'
+import { NapCatClient } from '../../src/core'
+import { WebSocketTransport } from '../../src/transport'
 
 /** @live 需要真实 NapCat 实例 */
 describe.skip('E2E：连接', () => {
