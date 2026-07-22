@@ -3,5 +3,6 @@
  */
 
 export { seg, extractPlaintext } from './segment.js'
+export { cq } from './cqcode.js'
 export * from './guards.js'
 export { snakeToCamel, camelToSnake } from './convert.js'

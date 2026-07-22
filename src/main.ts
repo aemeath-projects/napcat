@@ -38,5 +38,6 @@ export { ExtensionApi } from './api/extension.js'
 
 // 工具函数
 export { seg, extractPlaintext } from './utils/segment.js'
+export { cq } from './utils/cqcode.js'
 export * from './utils/guards.js'
 export { snakeToCamel, camelToSnake } from './utils/convert.js'
