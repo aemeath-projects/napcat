@@ -2,6 +2,17 @@
 
 所有版本变更记录
 
+## [1.3.0](https://github.com/aemeath-projects/napcat/compare/v1.2.7...v1.3.0) (2026-07-22)
+
+### 重构
+
+* 将 barrel 导入改为精确路径导入，避免循环依赖 ([2a9f857](https://github.com/aemeath-projects/napcat/commit/2a9f85764a4b92b89cf67348ded48c017bf323ec))
+* 统一使用 barrel 导出简化模块导入路径 ([8944ee8](https://github.com/aemeath-projects/napcat/commit/8944ee8b662cffdd2d1d0d5f415fa71f8e253b97))
+* **utils,builder:** 抽取共享 MessageBuilder，seg/cq 支持链式构建与 CQ 码互转 ([7b631f7](https://github.com/aemeath-projects/napcat/commit/7b631f71c9f4d09379db60918110f1769f3ae992))
+
+### 文档
+
+* 更新 README 中 NapCat 版本号为 4.18.13 ([3bc82fb](https://github.com/aemeath-projects/napcat/commit/3bc82fb8a18f4d6053b900afd5f29438719fc5b1))
 ## [1.2.7](https://github.com/aemeath-projects/napcat/compare/v1.2.6...v1.2.7) (2026-07-16)
 
 
