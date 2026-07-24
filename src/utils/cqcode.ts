@@ -23,6 +23,9 @@ const TS_TO_CQ_KEY_MAP: Record<string, string> = {
   userId: 'user_id',
 }
 
+/** 反转义 CQ 码中的特殊字符。
+ * @param val - 含转义字符的字符串。
+ * @returns 反转义后的字符串。 */
 function unescapeCqValue(val: string): string {
   return val
     .replace(/&#91;/g, '[')
@@ -31,10 +34,16 @@ function unescapeCqValue(val: string): string {
     .replace(/&amp;/g, '&')
 }
 
+/** 转义普通文本中的 CQ 码特殊字符。
+ * @param text - 原始文本。
+ * @returns 转义后的文本。 */
 function escapeText(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/\[/g, '&#91;').replace(/\]/g, '&#93;')
 }
 
+/** 转义 CQ 码参数值中的特殊字符。
+ * @param val - 原始值。
+ * @returns 转义后的值。 */
 function escapeCqValue(val: string): string {
   return val
     .replace(/&/g, '&amp;')
@@ -43,6 +52,9 @@ function escapeCqValue(val: string): string {
     .replace(/,/g, '&#44;')
 }
 
+/** 将参数字段中的数字字符串转为数字类型。
+ * @param type - CQ 码类型。
+ * @param data - 原始参数对象。 */
 function convertNumericFields(type: string, data: Record<string, unknown>): void {
   const numFields = NUMERIC_FIELDS_BY_TYPE[type]
   if (!numFields) return
@@ -70,7 +82,8 @@ function convertNumericFields(type: string, data: Record<string, unknown>): void
  * - 已知数字字段（id, result, lat, lon, user_id）自动转为 number
  * - CQ 协议键名映射到 TS 接口键名（如 user_id → userId）
  * - qq 字段保持字符串（与 AtSegment 类型一致）
- */
+ * @param cqString - CQ 码字符串。
+ * @returns 解析后的 CQ 码消息段数组。 */
 export function parseCqCode(cqString: string): MessageSegment[] {
   const result: MessageSegment[] = []
 
@@ -134,11 +147,18 @@ const SKIPPABLE_FIELDS: Partial<Record<string, ReadonlySet<string>>> = {
   node: new Set(['content']),
 }
 
+/** 判断 CQ 码参数是否可跳过输出。
+ * @param segType - 消息段类型。
+ * @param key - 参数名。
+ * @returns 是否可跳过。 */
 function isSkippable(segType: string, key: string): boolean {
   const skipSet = SKIPPABLE_FIELDS[segType]
   return skipSet?.has(key) ?? false
 }
 
+/** 将参数值转为字符串表示。
+ * @param value - 参数值。
+ * @returns 字符串形式。 */
 function valueToString(value: unknown): string {
   if (typeof value === 'object' && value !== null) {
     return JSON.stringify(value)
@@ -150,7 +170,9 @@ function valueToString(value: unknown): string {
   return ''
 }
 
-/** 将消息段数组序列化为 CQ 码字符串。 */
+/** 将消息段数组序列化为 CQ 码字符串。
+ * @param segments - CQ 码消息段数组。
+ * @returns 序列化后的 CQ 码字符串。 */
 export function stringifyCqCode(segments: MessageSegment[]): string {
   return segments
     .map((seg) => {
@@ -180,6 +202,8 @@ export function stringifyCqCode(segments: MessageSegment[]): string {
     .join('')
 }
 
+/** CQ 码工具集。提供 {@link parseCqCode parse}、{@link stringifyCqCode stringify} 及各类工厂方法。
+ * @example cq.parse("[CQ:at,qq=123]") */
 export const cq = Object.assign(
   (initial?: MessageSegment[]) => createBuilder(initial, stringifyCqCode),
   factories,

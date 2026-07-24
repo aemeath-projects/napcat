@@ -13,6 +13,11 @@ export const httpClient: AxiosInstance = axios.create({
 /**
  * 统一的 API 调用封装。
  * 向 `/baseUrl/action` 发 POST JSON 请求，返回解析后的 ApiResponse。
+ * @param baseUrl NapCat HTTP API 基础地址
+ * @param action API 动作名称
+ * @param params 请求参数
+ * @param token 访问令牌，非空时附加到 Authorization header
+ * @returns API 响应
  */
 export async function apiCall(
   baseUrl: string,

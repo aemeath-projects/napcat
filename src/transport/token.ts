@@ -2,7 +2,11 @@
 
 import type { IncomingMessage } from 'node:http'
 
-/** 从 `Authorization: Bearer <token>` header 提取 token，不存在则返回 undefined。 */
+/**
+ * 从 `Authorization: Bearer <token>` header 提取 token，不存在则返回 undefined。
+ * @param req HTTP 请求对象
+ * @returns 提取到的 token 字符串，未找到则返回 undefined
+ */
 function extractFromHeader(req: IncomingMessage): string | undefined {
   const authHeader = req.headers.authorization
   if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
@@ -11,7 +15,11 @@ function extractFromHeader(req: IncomingMessage): string | undefined {
   return undefined
 }
 
-/** 从 URL query string 的 `access_token` 参数提取 token，不存在或为空字符串则返回 undefined。 */
+/**
+ * 从 URL query string 的 `access_token` 参数提取 token，不存在或为空字符串则返回 undefined。
+ * @param req HTTP 请求对象
+ * @returns 提取到的 token 字符串，未找到则返回 undefined
+ */
 function extractFromQuery(req: IncomingMessage): string | undefined {
   const url = req.url ?? ''
   const queryStart = url.indexOf('?')
@@ -24,6 +32,9 @@ function extractFromQuery(req: IncomingMessage): string | undefined {
 /**
  * 从请求中提取鉴权 token，按 `headerFirst` 指定的优先级依次尝试 header/query，
  * 两者都取不到时返回 undefined。
+ * @param req HTTP 请求对象
+ * @param opts 提取选项，指定 header 优先还是 query 优先
+ * @returns 提取到的 token 字符串，未找到则返回 undefined
  */
 export function extractTokenFromRequest(
   req: IncomingMessage,

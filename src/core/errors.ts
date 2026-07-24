@@ -14,7 +14,9 @@ export class TransportError extends NapCatError {}
 
 /** API 调用超时。 */
 export class TimeoutError extends NapCatError {
+  /** API 动作名称。 */
   readonly action: string
+  /** 超时时间（毫秒）。 */
   readonly timeout: number
 
   constructor(action: string, timeout: number) {

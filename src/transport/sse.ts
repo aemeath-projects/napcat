@@ -40,6 +40,10 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
   private readonly _reconnectOpts: ReconnectOptions | undefined
   private readonly _idleTimeoutMs: number
 
+  /**
+   * 创建 SseTransport 实例。
+   * @param opts 构造参数
+   */
   constructor(opts: SseTransportOptions) {
     super()
     this._baseUrl = opts.baseUrl.replace(/\/$/, '')
@@ -52,6 +56,10 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
     this._lifecycle = new ConnectionLifecycleManager(this._reconnectPolicy)
   }
 
+  /**
+   * 当前连接状态。
+   * @returns 当前 TransportState
+   */
   get state(): TransportState {
     return this._state
   }
@@ -60,6 +68,7 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
    * 建立 SSE 连接。
    * 连接成功（HTTP 200）后 emit('connect')，state → connected。
    * 异步读取 SSE 流，不阻塞调用方。
+   * @returns 连接建立后 resolve
    */
   async connect(): Promise<void> {
     this._intentionalClose = false
@@ -118,7 +127,12 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
     }, 0)
   }
 
-  /** 读取并解析 SSE 流，断开后触发 close 及重连逻辑。 */
+  /**
+   * 读取并解析 SSE 流，断开后触发 close 及重连逻辑。
+   * @param resp fetch 响应对象
+   * @param connectionId 当前连接 ID，用于判断连接是否过期
+   * @returns 流读取完成后 resolve
+   */
   private async _readSseStream(resp: Response, connectionId: number): Promise<void> {
     const reader = resp.body?.getReader()
     if (reader == null) return
@@ -206,6 +220,8 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
   /**
    * 重新安排空闲超时定时器（每次收到任意数据都调用一次以重置计时）。
    * 超时未收到任何数据视为连接假死，主动中断当前流触发既有 close → 重连链路。
+   * @param connectionId 当前连接 ID，用于判断连接是否过期
+   * @returns void
    */
   private _armIdleTimer(connectionId: number): void {
     this._clearIdleTimer()
@@ -215,7 +231,10 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
     }, this._idleTimeoutMs)
   }
 
-  /** 取消挂起的空闲超时定时器（若有）。 */
+  /**
+   * 取消挂起的空闲超时定时器（若有）。
+   * @returns void
+   */
   private _clearIdleTimer(): void {
     if (this._idleTimer) {
       clearTimeout(this._idleTimer)
@@ -223,7 +242,10 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
     }
   }
 
-  /** 按 ReconnectPolicy 安排下次重连。 */
+  /**
+   * 按 ReconnectPolicy 安排下次重连。
+   * @returns void
+   */
   private _scheduleReconnect(): void {
     const snapshotId = this._lifecycle.connectionId
     this._lifecycle.scheduleReconnect({
@@ -245,7 +267,10 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
     })
   }
 
-  /** 断开 SSE 连接，state → disconnected。 */
+  /**
+   * 断开 SSE 连接，state → disconnected。
+   * @returns void
+   */
   async disconnect(): Promise<void> {
     this._intentionalClose = true
     this._lifecycle.clearStableResetTimer()
@@ -256,6 +281,12 @@ export class SseTransport extends TypedEventEmitter<SseTransportEventMap> implem
     this.emit('close')
   }
 
+  /**
+   * 调用 NapCat API，通过 HTTP POST 请求发送。
+   * @param action API 动作名称
+   * @param params 请求参数
+   * @returns API 响应
+   */
   async call(action: string, params: Record<string, unknown>): Promise<ApiResponse> {
     return apiCall(this._baseUrl, action, params, this._token)
   }

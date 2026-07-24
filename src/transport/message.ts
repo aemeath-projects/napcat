@@ -11,6 +11,10 @@ export interface PendingCall {
 /**
  * 处理收到的 WebSocket 消息 — 区分 API 响应（echo）和事件推送（post_type）。
  * 供 WebSocketTransport 和 ReverseWebSocketTransport 复用。
+ * @param raw 原始消息字符串
+ * @param pending 等待中的 API 调用映射表
+ * @param emit 事件发射回调
+ * @returns void
  */
 export function handleIncomingMessage(
   raw: string,

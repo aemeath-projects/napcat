@@ -7,18 +7,30 @@
  * 因此对同一数据多次调用不会产生错误结果。
  */
 
-/** 将单个 snake_case 字符串转为 camelCase，不含下划线或以下划线开头的键原样返回。 */
+/**
+ * 将单个 snake_case 字符串转为 camelCase。
+ * 不含下划线或以下划线开头的键原样返回。
+ * @param key - 原始键名。
+ * @returns 驼峰形式键名。 */
 function toCamelKey(key: string): string {
   if (!key.includes('_') || key.startsWith('_')) return key
   return key.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase())
 }
 
-/** 将单个 camelCase 字符串转为 snake_case，已为 snake_case 的键原样返回。 */
+/**
+ * 将单个 camelCase 字符串转为 snake_case。
+ * 已为 snake_case 的键原样返回。
+ * @param key - 原始键名。
+ * @returns 下划线形式键名。 */
 function toSnakeKey(key: string): string {
   return key.replace(/[A-Z]/g, (c) => '_' + c.toLowerCase())
 }
 
-/** 深递归将对象/数组中所有键名从 snake_case 转为 camelCase。 */
+/**
+ * 深递归将对象/数组中所有键名从 snake_case 转为 camelCase。
+ * @typeparam T - 数据类型。
+ * @param data - 下划线键名的对象。
+ * @returns 驼峰键名的对象。 */
 export function snakeToCamel<T>(data: T): T {
   if (data === null || data === undefined) return data
   if (Array.isArray(data)) {
@@ -36,7 +48,11 @@ export function snakeToCamel<T>(data: T): T {
   return data
 }
 
-/** 深递归将对象/数组中所有键名从 camelCase 转为 snake_case。 */
+/**
+ * 深递归将对象/数组中所有键名从 camelCase 转为 snake_case。
+ * @typeparam T - 数据类型。
+ * @param data - 驼峰键名的对象。
+ * @returns 下划线键名的对象。 */
 export function camelToSnake<T>(data: T): T {
   if (data === null || data === undefined) return data
   if (Array.isArray(data)) {

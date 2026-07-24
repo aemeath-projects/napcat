@@ -47,6 +47,10 @@ export class ReverseWebSocketTransport
   private _intentionalClose = false
   private _actualPort = 0
 
+  /**
+   * 创建 ReverseWebSocketTransport 实例。
+   * @param opts 构造参数
+   */
   constructor(opts: ReverseWebSocketTransportOptions) {
     super()
     this._host = opts.host ?? '127.0.0.1'
@@ -57,6 +61,10 @@ export class ReverseWebSocketTransport
     this._timeout = opts.timeout ?? 10000
   }
 
+  /**
+   * 当前连接状态。
+   * @returns 当前 TransportState
+   */
   get state(): TransportState {
     return this._state
   }
@@ -75,6 +83,7 @@ export class ReverseWebSocketTransport
    * 启动 WS server 并开始监听。注意：本方法仅启动 server，`connect` 事件
    * 会在 NapCat 客户端实际连接进来时才触发（见 `_handleIncomingConnection`），
    * 这与 WebSocketTransport.connect() 的行为不同。
+   * @returns server 启动后 resolve
    */
   async connect(): Promise<void> {
     this._intentionalClose = false
@@ -101,7 +110,10 @@ export class ReverseWebSocketTransport
     })
   }
 
-  /** 关闭所有连接并停止 server。 */
+  /**
+   * 关闭所有连接并停止 server。
+   * @returns 关闭完成后 resolve
+   */
   async disconnect(): Promise<void> {
     this._intentionalClose = true
 
@@ -150,7 +162,12 @@ export class ReverseWebSocketTransport
     this._state = 'disconnected'
   }
 
-  /** 调用 NapCat API，通过 echo 关联响应。 */
+  /**
+   * 调用 NapCat API，通过 echo 关联响应。
+   * @param action API 动作名称
+   * @param params 请求参数
+   * @returns API 响应
+   */
   async call(action: string, params: Record<string, unknown>): Promise<ApiResponse> {
     if (this._state !== 'connected' || !this._currentWs) {
       throw new TransportError(`无法调用 "${action}"：当前状态为 ${this._state}`)
@@ -170,7 +187,12 @@ export class ReverseWebSocketTransport
     })
   }
 
-  /** 处理新进入的 WebSocket 连接。 */
+  /**
+   * 处理新进入的 WebSocket 连接。
+   * @param ws WebSocket 连接实例
+   * @param req HTTP 升级请求
+   * @returns void
+   */
   private _handleIncomingConnection(ws: WebSocket, req: IncomingMessage): void {
     // 鉴权校验
     if (this._token) {
@@ -229,6 +251,8 @@ export class ReverseWebSocketTransport
    * 从 HTTP 请求解析 token。WS 客户端模式下 NapCat 通过 URL query
    * `access_token` 传递 token，故优先从 query string 提取；
    * 其次才从 `Authorization: Bearer` header 提取作为兜底。
+   * @param req HTTP 请求对象
+   * @returns 提取到的 token 字符串，未找到则返回 undefined
    */
   private _getTokenFromRequest(req: IncomingMessage): string | undefined {
     return extractTokenFromRequest(req, { headerFirst: false })

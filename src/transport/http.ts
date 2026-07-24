@@ -41,6 +41,10 @@ export class HttpTransport extends TypedEventEmitter<TransportEventMap> implemen
   private _httpServer: ReturnType<typeof createServer> | null = null
   private _actualPort = 0
 
+  /**
+   * 创建 HttpTransport 实例。
+   * @param opts 构造参数
+   */
   constructor(opts: HttpTransportOptions) {
     super()
     this._apiBaseUrl = opts.apiBaseUrl.replace(/\/$/, '') // 去除末尾斜杠
@@ -51,6 +55,10 @@ export class HttpTransport extends TypedEventEmitter<TransportEventMap> implemen
     this._eventPath = rawPath.startsWith('/') ? rawPath : `/${rawPath}`
   }
 
+  /**
+   * 当前连接状态。
+   * @returns 当前 TransportState
+   */
   get state(): TransportState {
     return this._state
   }
@@ -63,6 +71,7 @@ export class HttpTransport extends TypedEventEmitter<TransportEventMap> implemen
   /**
    * 启动 event server，然后调用 get_login_info 做健康检查。
    * 健康检查失败则停止 server 并抛 ConnectionError。
+   * @returns 连接建立后 resolve
    */
   async connect(): Promise<void> {
     this._state = 'connecting'
@@ -92,18 +101,30 @@ export class HttpTransport extends TypedEventEmitter<TransportEventMap> implemen
     this.emit('connect')
   }
 
-  /** 关闭 event server，state 设为 disconnected。 */
+  /**
+   * 关闭 event server，state 设为 disconnected。
+   * @returns 关闭完成后 resolve
+   */
   async disconnect(): Promise<void> {
     await this._stopEventServer()
     this._state = 'disconnected'
     this.emit('close')
   }
 
+  /**
+   * 调用 NapCat API，通过 HTTP POST 请求发送。
+   * @param action API 动作名称
+   * @param params 请求参数
+   * @returns API 响应
+   */
   async call(action: string, params: Record<string, unknown>): Promise<ApiResponse> {
     return apiCall(this._apiBaseUrl, action, params, this._token)
   }
 
-  /** 启动内置 HTTP event server，监听 NapCat 的事件上报。 */
+  /**
+   * 启动内置 HTTP event server，监听 NapCat 的事件上报。
+   * @returns server 启动后 resolve
+   */
   private async _startEventServer(): Promise<void> {
     const server = createServer((req: IncomingMessage, res: ServerResponse) => {
       this._handleEventRequest(req, res)
@@ -122,7 +143,10 @@ export class HttpTransport extends TypedEventEmitter<TransportEventMap> implemen
     })
   }
 
-  /** 停止 event server。 */
+  /**
+   * 停止 event server。
+   * @returns 关闭完成后 resolve
+   */
   private async _stopEventServer(): Promise<void> {
     const server = this._httpServer
     if (!server) return
@@ -138,7 +162,12 @@ export class HttpTransport extends TypedEventEmitter<TransportEventMap> implemen
     })
   }
 
-  /** 处理来自 NapCat 的事件上报请求。 */
+  /**
+   * 处理来自 NapCat 的事件上报请求。
+   * @param req HTTP 请求对象
+   * @param res HTTP 响应对象
+   * @returns void
+   */
   private _handleEventRequest(req: IncomingMessage, res: ServerResponse): void {
     // 仅处理配置路径（去除 query string 后比较）
     const urlWithoutQuery = req.url?.split('?')[0] ?? ''
@@ -178,6 +207,8 @@ export class HttpTransport extends TypedEventEmitter<TransportEventMap> implemen
    * 从请求中提取 token。HTTP 事件上报模式下 NapCat 通过
    * `Authorization: Bearer` header 传递 token，故优先从 header 提取；
    * 其次才从 URL query string 的 `access_token` 提取作为兜底。
+   * @param req HTTP 请求对象
+   * @returns 提取到的 token 字符串，未找到则返回 undefined
    */
   private _extractToken(req: IncomingMessage): string | undefined {
     return extractTokenFromRequest(req, { headerFirst: true })

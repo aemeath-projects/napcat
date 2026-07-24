@@ -7,6 +7,9 @@ import type { MessageSegment, TextSegment } from '../types'
 import { createBuilder, factories } from './builder.js'
 import { stringifyCqCode } from './cqcode.js'
 
+/** 消息段工厂集合与构造器快捷入口。既可直接调用工厂方法创建消息段，也可链式构建消息数组。
+ * @example seg.text("hello") // 创建文本消息段
+ * @example seg.at(123).text("hi").done // 链式构建消息数组 */
 export const seg = Object.assign(
   (initial?: MessageSegment[]) => createBuilder(initial, stringifyCqCode),
   factories,

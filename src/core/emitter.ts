@@ -1,6 +1,9 @@
 import { EventEmitter } from 'node:events'
 
-/** 类型安全的 EventEmitter 包装。通过 declare 声明覆盖原生方法签名，不改变运行时行为。 */
+/**
+ * 类型安全的 EventEmitter 包装。
+ * 通过 declare 声明覆盖原生方法签名，不改变运行时行为。
+ * @typeparam T - 事件映射类型，键为事件名，值为事件数据类型。 */
 export class TypedEventEmitter<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   T extends Record<string, (...args: any[]) => void>,

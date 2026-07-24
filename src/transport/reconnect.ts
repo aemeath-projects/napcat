@@ -29,6 +29,10 @@ export class ReconnectPolicy {
   private readonly _stableAfterMs: number
   private _attempts: number
 
+  /**
+   * 创建 ReconnectPolicy 实例。
+   * @param opts 重连配置选项
+   */
   constructor(opts: ReconnectOptions = {}) {
     this._initialDelay = opts.initialDelay ?? 1000
     this._maxDelay = opts.maxDelay ?? 30000
@@ -39,13 +43,19 @@ export class ReconnectPolicy {
     this._attempts = 0
   }
 
-  /** 是否还可以继续重试。 */
+  /**
+   * 是否还可以继续重试。
+   * @returns 若还可重试返回 true，否则返回 false
+   */
   canRetry(): boolean {
     if (this._maxRetries === -1) return true
     return this._attempts < this._maxRetries
   }
 
-  /** 计算下次延迟（ms），并递增计数器。 */
+  /**
+   * 计算下次延迟（ms），并递增计数器。
+   * @returns 下次重连延迟（ms），含 jitter 抖动
+   */
   nextDelay(): number {
     const base = Math.min(
       this._initialDelay * Math.pow(this._multiplier, this._attempts),
@@ -59,17 +69,26 @@ export class ReconnectPolicy {
     return base + (Math.random() * 2 - 1) * jitterRange
   }
 
-  /** 重置计数器（连接维持满 stableAfterMs 后调用）。 */
+  /**
+   * 重置计数器（连接维持满 stableAfterMs 后调用）。
+   * @returns void
+   */
   reset(): void {
     this._attempts = 0
   }
 
-  /** 当前重试次数（已调用 nextDelay 的次数）。 */
+  /**
+   * 当前重试次数（已调用 nextDelay 的次数）。
+   * @returns 当前重试次数
+   */
   get attempts(): number {
     return this._attempts
   }
 
-  /** 连接需要维持满这么久（ms）才清零重连计数器。 */
+  /**
+   * 连接需要维持满这么久（ms）才清零重连计数器。
+   * @returns 稳定期时长（ms）
+   */
   get stableAfterMs(): number {
     return this._stableAfterMs
   }

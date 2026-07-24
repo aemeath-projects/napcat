@@ -61,38 +61,56 @@ export type GroupRole = (typeof GROUP_ROLE)[keyof typeof GROUP_ROLE]
 
 /** 消息发送者信息。 */
 export interface Sender {
+  /** 发送者 QQ 号。 */
   userId?: number | null
+  /** 发送者 QQ 昵称。 */
   nickname?: string | null
+  /** 性别。 */
   sex?: string | null
+  /** 年龄。 */
   age?: number | null
+  /** 群名片，仅群消息时有值。 */
   card?: string | null
+  /** 群角色：owner、admin 或 member。 */
   role?: string | null
+  /** 专属头衔。 */
   title?: string | null
+  /** 等级。 */
   level?: string | null
+  /** 地区。 */
   area?: string | null
+  /** 群号，仅群消息时有值。 */
   groupId?: number | null
   [key: string]: unknown
 }
 
 /** 匿名用户信息。 */
 export interface Anonymous {
+  /** 匿名用户 ID。 */
   id: number
+  /** 匿名用户展示名称。 */
   name: string
+  /** 匿名用户标识。 */
   flag: string
   [key: string]: unknown
 }
 
 /** 心跳状态。 */
 export interface HeartbeatStatus {
+  /** 是否在线。 */
   online?: boolean | null
+  /** 运行是否正常。 */
   good: boolean
   [key: string]: unknown
 }
 
 /** OneBot 事件基础结构。 */
 export interface OneBotEvent {
+  /** 事件发生时间（Unix 时间戳，秒）。 */
   time: number
+  /** 机器人自身 QQ 号。 */
   selfId: number
+  /** 上报类型：message、notice、request、meta_event。 */
   postType: string
   [key: string]: unknown
 }
@@ -101,10 +119,15 @@ export interface OneBotEvent {
  * API 响应结构（SDK 内部处理 echo，此处不含 echo 字段）。
  */
 export interface ApiResponse {
+  /** 状态：ok 表示成功，failed 表示失败。 */
   status: string
+  /** 返回码，0 表示成功。 */
   retcode: number
+  /** 响应数据。 */
   data: Record<string, unknown> | unknown[] | null
+  /** 错误消息，success 时可能为 null。 */
   message?: string | null
+  /** 错误提示文本。 */
   wording?: string | null
   [key: string]: unknown
 }

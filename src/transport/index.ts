@@ -1,3 +1,7 @@
+/**
+ * 传输模块 - 提供 HTTP、WebSocket、SSE、反向 WebSocket 等多种通信方式。
+ */
+
 export type { Transport, TransportState } from './interface.js'
 export type { PendingCall } from './message.js'
 export { ReconnectPolicy, type ReconnectOptions } from './reconnect.js'

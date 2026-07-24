@@ -7,7 +7,13 @@ import { snakeToCamel, camelToSnake } from '../utils'
 export abstract class BaseApi {
   constructor(protected readonly client: NapCatClient) {}
 
-  /** 调用 API 并将响应包装为 Result。Transport 层异常直接向上抛。 */
+  /**
+   * 调用 API 并将响应包装为 Result。Transport 层异常直接向上抛。
+   * @param action - API 动作名称。
+   * @param params - 请求参数。
+   * @returns API 响应数据。
+   * @throws {ApiError} 当 API 调用失败时抛出。
+   */
   protected async invoke<T>(action: string, params?: object): Promise<Result<T>> {
     const resp: ApiResponse = await this.client.call(
       action,

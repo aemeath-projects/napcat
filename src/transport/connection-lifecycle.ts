@@ -28,14 +28,24 @@ export class ConnectionLifecycleManager {
   private _connectionId = 0
   private _stableResetTimer: ReturnType<typeof setTimeout> | null = null
 
+  /**
+   * 创建 ConnectionLifecycleManager 实例。
+   * @param _reconnectPolicy 重连策略实例，null 表示不启用自动重连
+   */
   constructor(private readonly _reconnectPolicy: ReconnectPolicy | null) {}
 
-  /** 递增并返回新的连接身份 ID。 */
+  /**
+   * 递增并返回新的连接身份 ID。
+   * @returns 新的连接 ID
+   */
   nextConnectionId(): number {
     return ++this._connectionId
   }
 
-  /** 当前连接身份 ID。 */
+  /**
+   * 当前连接身份 ID。
+   * @returns 当前连接 ID
+   */
   get connectionId(): number {
     return this._connectionId
   }
@@ -43,6 +53,7 @@ export class ConnectionLifecycleManager {
   /**
    * 连接成功后调用：等待连接维持满 `reconnectPolicy.stableAfterMs` 才清零重连计数器；
    * 期间若再次断开（宿主调用 clearStableResetTimer）则取消。
+   * @returns void
    */
   armStableResetTimer(): void {
     if (!this._reconnectPolicy) return
@@ -53,7 +64,10 @@ export class ConnectionLifecycleManager {
     }, this._reconnectPolicy.stableAfterMs)
   }
 
-  /** 取消待触发的稳定期清零定时器（若有）。 */
+  /**
+   * 取消待触发的稳定期清零定时器（若有）。
+   * @returns void
+   */
   clearStableResetTimer(): void {
     if (this._stableResetTimer) {
       clearTimeout(this._stableResetTimer)
@@ -61,7 +75,11 @@ export class ConnectionLifecycleManager {
     }
   }
 
-  /** 安排一次重连尝试。无 reconnectPolicy 时静默不做任何事。 */
+  /**
+   * 安排一次重连尝试。无 reconnectPolicy 时静默不做任何事。
+   * @param opts 宿主提供的回调集合，含 isExpired / doConnect / onReconnecting / onGiveUp / onError
+   * @returns void
+   */
   scheduleReconnect(opts: ScheduleReconnectOptions): void {
     if (!this._reconnectPolicy?.canRetry()) {
       if (this._reconnectPolicy) opts.onGiveUp()

@@ -10,27 +10,36 @@ const HIERARCHICAL_POST_TYPES = new Set(['message', 'notice', 'request', 'meta_e
 
 /** NapCat SDK 主客户端。薄壳，负责 Transport 代理和事件分发。 */
 export class NapCatClient extends TypedEventEmitter<ClientEventMap> {
+  /**
+   * @param transport - NapCat 传输层实例。
+   */
   constructor(public readonly transport: Transport) {
     super()
     this._setupEventForwarding()
   }
 
-  /** 当前连接状态，代理到 Transport。 */
+  /** 当前连接状态，代理到 Transport。
+   * @returns 当前连接状态字符串。 */
   get state() {
     return this.transport.state
   }
 
-  /** 建立与 NapCat 服务器的连接。 */
+  /** 建立与 NapCat 服务器的连接。
+   * @returns Promise，连接成功后 resolve。 */
   async connect(): Promise<void> {
     await this.transport.connect()
   }
 
-  /** 断开连接。 */
+  /** 断开连接。
+   * @returns Promise，断开连接后 resolve。 */
   async disconnect(): Promise<void> {
     await this.transport.disconnect()
   }
 
-  /** 调用 OneBot API，代理到 Transport。 */
+  /** 调用 OneBot API，代理到 Transport。
+   * @param action - API 动作名。
+   * @param params - API 参数。
+   * @returns API 响应。 */
   async call(action: string, params: Record<string, unknown>): Promise<ApiResponse> {
     return this.transport.call(action, params)
   }

@@ -54,6 +54,10 @@ export class WebSocketTransport
   private _pingTimer: ReturnType<typeof setInterval> | null = null
   private _pongTimeoutTimer: ReturnType<typeof setTimeout> | null = null
 
+  /**
+   * 创建 WebSocketTransport 实例。
+   * @param opts 构造参数
+   */
   constructor(opts: WebSocketTransportOptions) {
     super()
     this._url = opts.url
@@ -68,11 +72,18 @@ export class WebSocketTransport
     this._lifecycle = new ConnectionLifecycleManager(this._reconnectPolicy)
   }
 
+  /**
+   * 当前连接状态。
+   * @returns 当前 TransportState
+   */
   get state(): TransportState {
     return this._state
   }
 
-  /** 建立 WebSocket 连接。 */
+  /**
+   * 建立 WebSocket 连接。
+   * @returns 连接建立后 resolve
+   */
   async connect(): Promise<void> {
     this._state = 'connecting'
     this._intentionalClose = false
@@ -149,7 +160,10 @@ export class WebSocketTransport
     })
   }
 
-  /** 断开连接。 */
+  /**
+   * 断开连接。
+   * @returns 断开完成后 resolve
+   */
   async disconnect(): Promise<void> {
     this._intentionalClose = true
     this._lifecycle.clearStableResetTimer()
@@ -179,7 +193,12 @@ export class WebSocketTransport
     })
   }
 
-  /** 调用 NapCat API，通过 echo 关联响应。 */
+  /**
+   * 调用 NapCat API，通过 echo 关联响应。
+   * @param action API 动作名称
+   * @param params 请求参数
+   * @returns API 响应
+   */
   async call(action: string, params: Record<string, unknown>): Promise<ApiResponse> {
     if (this._state !== 'connected' || !this._ws) {
       throw new TransportError(`无法调用 "${action}"：当前状态为 ${this._state}`)
@@ -199,14 +218,21 @@ export class WebSocketTransport
     })
   }
 
-  /** 构建带 token 的 URL。 */
+  /**
+   * 构建带 token 的 URL。
+   * @returns 带 token 的完整 URL 字符串
+   */
   private _buildUrl(): string {
     if (!this._token) return this._url
     const separator = this._url.includes('?') ? '&' : '?'
     return `${this._url}${separator}access_token=${encodeURIComponent(this._token)}`
   }
 
-  /** 启动 ping/pong 心跳循环，检测"看似开着但实际已死"的假死连接。 */
+  /**
+   * 启动 ping/pong 心跳循环，检测"看似开着但实际已死"的假死连接。
+   * @param ws WebSocket 实例
+   * @param connectionId 当前连接 ID，用于判断连接是否过期
+   */
   private _startPingLoop(ws: WebSocket, connectionId: number): void {
     this._clearPingLoop()
     this._pingTimer = setInterval(() => {
@@ -225,7 +251,10 @@ export class WebSocketTransport
     }, this._pingIntervalMs)
   }
 
-  /** 停止 ping 定时器（同时清理挂起的 pong 超时定时器）。 */
+  /**
+   * 停止 ping 定时器（同时清理挂起的 pong 超时定时器）。
+   * @returns void
+   */
   private _clearPingLoop(): void {
     if (this._pingTimer) {
       clearInterval(this._pingTimer)
@@ -234,7 +263,10 @@ export class WebSocketTransport
     this._clearPongTimeout()
   }
 
-  /** 取消挂起的 pong 超时定时器（若有）。 */
+  /**
+   * 取消挂起的 pong 超时定时器（若有）。
+   * @returns void
+   */
   private _clearPongTimeout(): void {
     if (this._pongTimeoutTimer) {
       clearTimeout(this._pongTimeoutTimer)
@@ -242,7 +274,10 @@ export class WebSocketTransport
     }
   }
 
-  /** 安排重连。 */
+  /**
+   * 安排重连。
+   * @returns void
+   */
   private _scheduleReconnect(): void {
     this._lifecycle.scheduleReconnect({
       // 如果已经主动关闭，或状态已经不是 reconnecting（比如外部显式调用了 connect()），不再重连
