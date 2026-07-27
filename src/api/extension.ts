@@ -163,7 +163,7 @@ export class ExtensionApi extends BaseApi {
     return this.invoke('fetch_custom_face', { count })
   }
 
-  // === 4.18.9+ 扩展端点 ===
+  // 4.18.9+ 扩展端点
 
   /**
    * 添加自定义表情。

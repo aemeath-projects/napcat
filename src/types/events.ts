@@ -5,7 +5,7 @@
 import type { Anonymous, HeartbeatStatus, OneBotEvent, Sender } from './common.js'
 import type { MessageSegment } from './segments.js'
 
-// === 消息事件 ===
+// 消息事件
 
 /** 消息事件基类。 */
 export interface MessageEvent extends OneBotEvent {
@@ -77,7 +77,7 @@ export interface MessageSentEvent extends OneBotEvent {
   targetId: number
 }
 
-// === 元事件 ===
+// 元事件
 
 /** 元事件基类。 */
 export interface MetaEvent extends OneBotEvent {
@@ -105,7 +105,7 @@ export interface HeartbeatEvent extends MetaEvent {
   interval: number
 }
 
-// === 通知事件 ===
+// 通知事件
 
 /** 通知事件基类。 */
 export interface NoticeEvent extends OneBotEvent {
@@ -351,7 +351,7 @@ export interface BotOfflineNotice extends NoticeEvent {
   message: string
 }
 
-// === 请求事件 ===
+// 请求事件
 
 /** 请求事件基类。 */
 export interface RequestEvent extends OneBotEvent {
@@ -428,7 +428,7 @@ export type AnyNoticeEvent =
   | NotifyEvent
   | BotOfflineNotice
 
-// === SDK 事件映射 ===
+// SDK 事件映射
 
 /** Transport 层事件映射。 */
 export interface TransportEventMap {

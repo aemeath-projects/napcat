@@ -395,7 +395,7 @@ export class GroupApi extends BaseApi {
     return this.invoke('get_group_signed_list', { group_id: groupId })
   }
 
-  // === 群相册 ===
+  // 群相册
 
   /**
    * 获取群相册列表。
@@ -525,7 +525,7 @@ export class GroupApi extends BaseApi {
     })
   }
 
-  // === 群待办 ===
+  // 群待办
 
   /**
    * 设置群待办。
@@ -572,7 +572,7 @@ export class GroupApi extends BaseApi {
     })
   }
 
-  // === 群设置 ===
+  // 群设置
 
   /**
    * 设置群加群选项。
