@@ -4,7 +4,7 @@ NapCat / OneBot 11 TypeScript SDK. 提供对 NapCat 的完整 TypeScript 封装�
 
 ![NPM Version](https://img.shields.io/npm/v/%40aemeath-projects%2Fnapcat?style=for-the-badge)
 ![NapCat Version](https://img.shields.io/badge/napcat-4.18.13-pink?style=for-the-badge)
-![CI Status](https://img.shields.io/github/actions/workflow/status/aemeath-projects/napcat/ci.yml?style=for-the-badge)
+![CI Status](https://img.shields.io/github/actions/workflow/status/aemeath-projects/napcat/publish.yml?style=for-the-badge)
 ![Codecov](https://img.shields.io/codecov/c/github/aemeath-projects/napcat?style=for-the-badge)
 ![License](https://img.shields.io/github/license/aemeath-projects/napcat?style=for-the-badge)
 

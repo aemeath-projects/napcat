@@ -150,3 +150,8 @@ vite.config.ts.timestamp-*
 
 # 本地 Napcat 文档
 NapCatDocs/
+
+# Claude Code
+.claude/
+.serena/
+.spec-workflow/
