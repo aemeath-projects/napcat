@@ -513,6 +513,11 @@ describe('cq.parse 极端边界', () => {
     expect(result[2].type).toBe('face')
   })
 
+  it('超过 100K 字符限制时抛出错误', () => {
+    const tooLong = 'x'.repeat(100_001)
+    expect(() => cq.parse(tooLong)).toThrow('CQ code input too long')
+  })
+
   it('CQ 码内重复 key 后者覆盖前者', () => {
     const result = cq.parse('[CQ:custom,k=first,k=second]')
     expect(result[0].data).toEqual({ k: 'second' })

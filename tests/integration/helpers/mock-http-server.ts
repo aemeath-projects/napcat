@@ -22,9 +22,8 @@ export class MockNapCatHttpServer {
       req.on('end', () => {
         const params = body ? (JSON.parse(body) as Record<string, unknown>) : {}
         const handler = this.handlers.get(action)
-        const result: MockResponse = handler
-          ? handler(params)
-          : { status: 'ok', retcode: 0, data: null }
+        const result: MockResponse =
+          typeof handler === 'function' ? handler(params) : { status: 'ok', retcode: 0, data: null }
         res.writeHead(200, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify(result))
       })

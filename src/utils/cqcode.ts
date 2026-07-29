@@ -84,7 +84,16 @@ function convertNumericFields(type: string, data: Record<string, unknown>): void
  * - qq 字段保持字符串（与 AtSegment 类型一致）
  * @param cqString - CQ 码字符串。
  * @returns 解析后的 CQ 码消息段数组。 */
+/** 输入最大长度限制，防止多项式正则回溯攻击。 */
+const MAX_CQ_INPUT_LENGTH = 100_000
+
 export function parseCqCode(cqString: string): MessageSegment[] {
+  if (cqString.length > MAX_CQ_INPUT_LENGTH) {
+    throw new Error(
+      `CQ code input too long: ${String(cqString.length)} > ${String(MAX_CQ_INPUT_LENGTH)} characters`,
+    )
+  }
+
   const result: MessageSegment[] = []
 
   const pattern = /\[CQ:([^,\]]+)(?:,([^\]]*))?\]/g
