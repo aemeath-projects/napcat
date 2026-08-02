@@ -2,6 +2,15 @@
 
 所有版本变更记录
 
+## [1.3.1](https://github.com/aemeath-projects/napcat/compare/v1.3.0...v1.3.1) (2026-08-02)
+
+### Bug 修复
+
+* 修复 CodeQL 扫描的 ReDoS 与未验证动态方法调用问题 ([12598ce](https://github.com/aemeath-projects/napcat/commit/12598ceed3408164ffd77eb97d068d016a869517))
+
+### 文档
+
+* 完善 TypeScript 类型定义与模块的中文 JSDoc 文档注释 ([2a4a362](https://github.com/aemeath-projects/napcat/commit/2a4a362e8f0fbefbcba5e5aedf3048d374480c76))
 ## [1.3.0](https://github.com/aemeath-projects/napcat/compare/v1.2.7...v1.3.0) (2026-07-22)
 
 ### 重构
