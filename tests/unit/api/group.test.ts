@@ -533,4 +533,120 @@ describe('群 API', () => {
       reason: undefined,
     })
   })
+
+  /* 4.18.37+ 群组端点测试 */
+
+  it('uploadImagesToQunAlbum 上传多张图片到群相册', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.uploadImagesToQunAlbum(1001, 'album_1', '相册1', ['/a.jpg', '/b.jpg'])
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
+      'upload_images_to_qun_album',
+      {
+        group_id: 1001,
+        album_id: 'album_1',
+        album_name: '相册1',
+        files: ['/a.jpg', '/b.jpg'],
+      },
+    )
+  })
+
+  it('uploadVideoToQunAlbum 上传视频到群相册', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.uploadVideoToQunAlbum(1001, 'album_1', '相册1', '/video.mp4')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
+      'upload_video_to_qun_album',
+      {
+        group_id: 1001,
+        album_id: 'album_1',
+        album_name: '相册1',
+        file: '/video.mp4',
+      },
+    )
+  })
+
+  it('getGroupShareLink 获取群分享链接', async () => {
+    const client = mockClient({ url: 'https://qm.qq.com/q/abc' })
+    const api = new GroupApi(client)
+    await api.getGroupShareLink(1001, true, 73, 'extra')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('get_group_share_link', {
+      group_id: 1001,
+      need_short_url: true,
+      src_id: 73,
+      additional_param: 'extra',
+    })
+  })
+
+  it('getGroupShareLink 省略可选参数', async () => {
+    const client = mockClient({ url: 'https://qm.qq.com/q/abc' })
+    const api = new GroupApi(client)
+    await api.getGroupShareLink(1001)
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('get_group_share_link', {
+      group_id: 1001,
+      need_short_url: undefined,
+      src_id: undefined,
+      additional_param: undefined,
+    })
+  })
+
+  it('setGroupMemberInvitePolicy 设置群成员邀请策略', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.setGroupMemberInvitePolicy(1001, 'require_approval')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
+      'set_group_member_invite_policy',
+      {
+        group_id: 1001,
+        policy: 'require_approval',
+      },
+    )
+  })
+
+  it('setGroupMemberPermissions 设置群成员功能权限', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.setGroupMemberPermissions(1001, {
+      allowMemberUploadAlbum: true,
+      allowMemberTemporarySession: false,
+      allowMemberCreateGroup: true,
+    })
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
+      'set_group_member_permissions',
+      {
+        group_id: 1001,
+        allow_member_upload_album: true,
+        allow_member_temporary_session: false,
+        allow_member_create_group: true,
+      },
+    )
+  })
+
+  it('setGroupMemberPermissions 省略可选参数', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.setGroupMemberPermissions(1001)
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
+      'set_group_member_permissions',
+      {
+        group_id: 1001,
+        allow_member_upload_album: undefined,
+        allow_member_temporary_session: undefined,
+        allow_member_create_group: undefined,
+      },
+    )
+  })
+
+  it('setGroupNewMemberHistoryVisibility 设置新成员历史消息可见性', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.setGroupNewMemberHistoryVisibility(1001, true)
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
+      'set_group_new_member_history_visibility',
+      {
+        group_id: 1001,
+        visible: true,
+      },
+    )
+  })
 })

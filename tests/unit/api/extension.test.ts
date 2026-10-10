@@ -114,7 +114,7 @@ describe('拓展 API', () => {
     const api = new ExtensionApi(client)
     await api.createCollection('raw_data', '收藏简要')
     expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('create_collection', {
-      raw_data: 'raw_data',
+      rawData: 'raw_data',
       brief: '收藏简要',
     })
   })
@@ -301,6 +301,45 @@ describe('拓展 API', () => {
     await api.sendGroupArkShare(1001)
     expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('send_group_ark_share', {
       group_id: 1001,
+    })
+  })
+
+  /* 4.18.37+ 扩展端点测试 */
+
+  it('sendQzoneMsg 发表 QQ 空间说说', async () => {
+    const client = mockClient({ tid: 'tid_123' })
+    const api = new ExtensionApi(client)
+    await api.sendQzoneMsg('今天天气不错', {
+      images: ['https://example.com/a.jpg'],
+      ugcRight: 1,
+      targetUins: [9999],
+    })
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('send_qzone_msg', {
+      content: '今天天气不错',
+      images: ['https://example.com/a.jpg'],
+      ugc_right: 1,
+      target_uins: [9999],
+    })
+  })
+
+  it('sendQzoneMsg 省略可选参数', async () => {
+    const client = mockClient({ tid: 'tid_123' })
+    const api = new ExtensionApi(client)
+    await api.sendQzoneMsg('仅文字')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('send_qzone_msg', {
+      content: '仅文字',
+      images: undefined,
+      ugc_right: undefined,
+      target_uins: undefined,
+    })
+  })
+
+  it('deleteQzoneMsg 删除 QQ 空间说说', async () => {
+    const client = mockClient()
+    const api = new ExtensionApi(client)
+    await api.deleteQzoneMsg('tid_123')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('delete_qzone_msg', {
+      tid: 'tid_123',
     })
   })
 })

@@ -141,7 +141,7 @@ export class ExtensionApi extends BaseApi {
    * @returns 无返回值。
    */
   createCollection(rawData: string, brief: string): Promise<Result<void>> {
-    return this.invoke('create_collection', { rawData, brief })
+    return this.invoke('create_collection', { rawData, brief }, { raw: true })
   }
 
   /**
@@ -340,5 +340,36 @@ export class ExtensionApi extends BaseApi {
    */
   sendGroupArkShare(groupId: number): Promise<Result<void>> {
     return this.invoke('send_group_ark_share', { group_id: groupId })
+  }
+
+  /**
+   * 发表 QQ 空间说说，支持纯文字或带图，可设置查看权限。
+   * @param content - 说说正文。
+   * @param params - 可选参数：图片数组、查看权限、权限作用的 QQ 号数组。
+   * @returns 说说 tid。
+   */
+  sendQzoneMsg(
+    content: string,
+    params?: {
+      images?: string[]
+      ugcRight?: 1 | 4 | 16 | 64 | 128
+      targetUins?: number[]
+    },
+  ): Promise<Result<{ tid: string }>> {
+    return this.invoke('send_qzone_msg', {
+      content,
+      images: params?.images,
+      ugc_right: params?.ugcRight,
+      target_uins: params?.targetUins,
+    })
+  }
+
+  /**
+   * 删除 QQ 空间说说。
+   * @param tid - 说说 tid（来自 sendQzoneMsg）。
+   * @returns 无返回值。
+   */
+  deleteQzoneMsg(tid: string): Promise<Result<void>> {
+    return this.invoke('delete_qzone_msg', { tid })
   }
 }

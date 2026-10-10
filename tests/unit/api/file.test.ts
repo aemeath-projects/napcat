@@ -299,6 +299,19 @@ describe('文件 API', () => {
       files: [{ file: 'photo.jpg' }],
       name: '闪传相册',
       thumb_path: '/thumb/path',
+      validitySeconds: undefined,
+    })
+  })
+
+  it('createFlashTask 指定文件集有效期', async () => {
+    const client = mockClient()
+    const api = new FileApi(client)
+    await api.createFlashTask([{ file: 'photo.jpg' }], '闪传相册', '/thumb/path', 7776000)
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('create_flash_task', {
+      files: [{ file: 'photo.jpg' }],
+      name: '闪传相册',
+      thumb_path: '/thumb/path',
+      validitySeconds: 7776000,
     })
   })
 

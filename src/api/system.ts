@@ -176,7 +176,7 @@ export class SystemApi extends BaseApi {
    * @returns 无返回值。
    */
   setSelfLongnick(longNick: string): Promise<Result<void>> {
-    return this.invoke('set_self_longnick', { longNick })
+    return this.invoke('set_self_longnick', { longNick }, { raw: true })
   }
 
   /**

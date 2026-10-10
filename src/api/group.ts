@@ -11,6 +11,7 @@ import type {
   GroupShutMember,
   GroupSystemMsg,
   IgnoredRequest,
+  GroupMemberInvitePolicy,
 } from '../types'
 
 import { BaseApi } from './base.js'
@@ -525,6 +526,72 @@ export class GroupApi extends BaseApi {
     })
   }
 
+  /**
+   * 上传多张图片到群相册（在相册中显示为同一条上传）。
+   * @param groupId - 群号。
+   * @param albumId - 相册 ID。
+   * @param albumName - 相册名称。
+   * @param files - 图片路径、URL 或 Base64 数组。
+   * @returns 无返回值。
+   */
+  uploadImagesToQunAlbum(
+    groupId: number,
+    albumId: string,
+    albumName: string,
+    files: string[],
+  ): Promise<Result<void>> {
+    return this.invoke('upload_images_to_qun_album', {
+      group_id: groupId,
+      album_id: albumId,
+      album_name: albumName,
+      files,
+    })
+  }
+
+  /**
+   * 上传视频到群相册（封面自动抽取首帧）。
+   * @param groupId - 群号。
+   * @param albumId - 相册 ID。
+   * @param albumName - 相册名称。
+   * @param file - 视频路径、URL 或 Base64。
+   * @returns 无返回值。
+   */
+  uploadVideoToQunAlbum(
+    groupId: number,
+    albumId: string,
+    albumName: string,
+    file: string,
+  ): Promise<Result<void>> {
+    return this.invoke('upload_video_to_qun_album', {
+      group_id: groupId,
+      album_id: albumId,
+      album_name: albumName,
+      file,
+    })
+  }
+
+  /**
+   * 获取群分享链接。
+   * @param groupId - 群号。
+   * @param needShortUrl - 是否返回短链，默认 true；false 返回完整 universal-share 链接。
+   * @param srcId - 分享来源 ID，默认 73。
+   * @param additionalParam - 附加参数。
+   * @returns 群分享链接。
+   */
+  getGroupShareLink(
+    groupId: number | string,
+    needShortUrl?: boolean,
+    srcId?: number,
+    additionalParam?: string,
+  ): Promise<Result<{ url: string }>> {
+    return this.invoke('get_group_share_link', {
+      group_id: groupId,
+      need_short_url: needShortUrl,
+      src_id: srcId,
+      additional_param: additionalParam,
+    })
+  }
+
   // 群待办
 
   /**
@@ -631,6 +698,54 @@ export class GroupApi extends BaseApi {
       group_id: groupId,
       no_code_finger_open: noCodeFingerOpen,
       no_finger_open: noFingerOpen,
+    })
+  }
+
+  /**
+   * 设置群成员邀请策略。
+   * @param groupId - 群号。
+   * @param policy - 邀请策略。
+   * @returns 无返回值。
+   */
+  setGroupMemberInvitePolicy(
+    groupId: number,
+    policy: GroupMemberInvitePolicy,
+  ): Promise<Result<void>> {
+    return this.invoke('set_group_member_invite_policy', { group_id: groupId, policy })
+  }
+
+  /**
+   * 设置群成员功能权限，未传入的项目保持不变。
+   * @param groupId - 群号。
+   * @param params - 权限开关：允许上传群相册、发起临时会话、发起新群聊。
+   * @returns 无返回值。
+   */
+  setGroupMemberPermissions(
+    groupId: number,
+    params?: {
+      allowMemberUploadAlbum?: boolean
+      allowMemberTemporarySession?: boolean
+      allowMemberCreateGroup?: boolean
+    },
+  ): Promise<Result<void>> {
+    return this.invoke('set_group_member_permissions', {
+      group_id: groupId,
+      allow_member_upload_album: params?.allowMemberUploadAlbum,
+      allow_member_temporary_session: params?.allowMemberTemporarySession,
+      allow_member_create_group: params?.allowMemberCreateGroup,
+    })
+  }
+
+  /**
+   * 设置新入群成员默认是否可见最近聊天记录。
+   * @param groupId - 群号。
+   * @param visible - 新成员是否默认可见最近聊天记录。
+   * @returns 无返回值。
+   */
+  setGroupNewMemberHistoryVisibility(groupId: number, visible: boolean): Promise<Result<void>> {
+    return this.invoke('set_group_new_member_history_visibility', {
+      group_id: groupId,
+      visible,
     })
   }
 }

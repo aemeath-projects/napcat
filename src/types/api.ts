@@ -110,6 +110,10 @@ export interface GroupMember {
 /** 荣誉类型。 */
 export type HonorType = 'talkative' | 'performer' | 'legend' | 'strong_newbie' | 'emotion' | 'all'
 
+/** 群成员邀请策略：禁止 / 需管理员审核 / 无需审核 / 群成员少于 100 人时无需审核。 */
+export type GroupMemberInvitePolicy =
+  'disabled' | 'require_approval' | 'no_approval' | 'no_approval_under_100'
+
 /** 群荣誉信息。 */
 export interface GroupHonor {
   /** 群号。 */
@@ -144,6 +148,10 @@ export interface GroupNotice {
   publishTime: number
   /** 公告内容，含文本和图片列表。 */
   message: { text: string; images: unknown[] }
+  /** 是否为「发给新成员」公告（4.18.37+）。 */
+  sendToNewMember?: boolean
+  /** 是否置顶，仅「发给新成员」公告可读到（4.18.37+）。 */
+  pinned?: boolean
   [key: string]: unknown
 }
 

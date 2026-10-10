@@ -124,13 +124,17 @@ export class FriendApi extends BaseApi {
     count: number,
     cookie?: string,
   ): Promise<Result<EmojiLike>> {
-    return this.invoke('fetch_emoji_like', {
-      message_id: messageId,
-      emojiId,
-      emojiType,
-      count,
-      cookie,
-    })
+    return this.invoke(
+      'fetch_emoji_like',
+      {
+        message_id: messageId,
+        emojiId,
+        emojiType,
+        count,
+        cookie,
+      },
+      { raw: true },
+    )
   }
 
   /**

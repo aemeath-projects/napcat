@@ -347,10 +347,21 @@ export class FileApi extends BaseApi {
    * @param files - 文件列表。
    * @param name - 任务名称。
    * @param thumbPath - 缩略图路径。
+   * @param validitySeconds - 文件集有效期（秒）：1209600（14 天）/ 7776000（90 天）/
+   * 15552000（180 天），默认 1209600。
    * @returns 无返回值。
    */
-  createFlashTask(files: unknown[], name?: string, thumbPath?: string): Promise<Result<void>> {
-    return this.invoke('create_flash_task', { files, name, thumb_path: thumbPath })
+  createFlashTask(
+    files: unknown[],
+    name?: string,
+    thumbPath?: string,
+    validitySeconds?: number,
+  ): Promise<Result<void>> {
+    return this.invoke(
+      'create_flash_task',
+      { files, name, thumb_path: thumbPath, validitySeconds },
+      { raw: true },
+    )
   }
 
   /**
