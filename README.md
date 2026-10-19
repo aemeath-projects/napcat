@@ -18,7 +18,7 @@ pnpm add @aemeath-projects/napcat
 
 本 SDK 的版本号与 NapCat 版本解耦。下表列出每个 release 发布时对齐的 NapCat 版本，以及通过 [NapCatDocs](https://github.com/NapNeko/NapCatDocs) 的 OpenAPI 快照逐版本比对得到的端点层面可运行范围。
 
-| SDK 版本 | 发布时对齐的 NapCat | 端点层面可运行范围（静态比对） |
+| SDK 版本 | 发布时对齐的 NapCat | 端点层面可运行范围 |
 | --- | --- | --- |
 | `v1.0.0` | 未标注 | `4.12.0` – `4.18.38` |
 | `v1.1.0` | `4.18.6` | `4.18.5` – `4.18.38` |
