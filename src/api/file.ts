@@ -111,10 +111,15 @@ export class FileApi extends BaseApi {
    * 删除群文件。
    * @param groupId - 群号。
    * @param fileId - 文件 ID。
+   * @param busId - 文件业务 ID，默认使用文件列表中的 `busid`。
    * @returns 无返回值。
    */
-  deleteGroupFile(groupId: number, fileId: string): Promise<Result<void>> {
-    return this.invoke('delete_group_file', { group_id: groupId, file_id: fileId })
+  deleteGroupFile(groupId: number, fileId: string, busId?: number): Promise<Result<void>> {
+    return this.invoke('delete_group_file', {
+      group_id: groupId,
+      file_id: fileId,
+      bus_id: busId,
+    })
   }
 
   /**

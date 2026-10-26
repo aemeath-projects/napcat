@@ -369,6 +369,20 @@ describe('群 API', () => {
       album_id: 'album_001',
       lloc: 'lloc_abc',
       content: '好照片！',
+      batch_id: undefined,
+    })
+  })
+
+  it('doGroupAlbumComment 支持评论整个上传批次', async () => {
+    const client = mockClient()
+    const api = new GroupApi(client)
+    await api.doGroupAlbumComment(1001, 'album_001', undefined, '整批好评！', 'batch_001')
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('do_group_album_comment', {
+      group_id: 1001,
+      album_id: 'album_001',
+      lloc: undefined,
+      content: '整批好评！',
+      batch_id: 'batch_001',
     })
   })
 

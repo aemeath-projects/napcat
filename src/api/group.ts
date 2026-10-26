@@ -486,21 +486,24 @@ export class GroupApi extends BaseApi {
    * 发表群相册评论。
    * @param groupId - 群号。
    * @param albumId - 相册 ID。
-   * @param lloc - 媒体 lloc 标识。
+   * @param lloc - 媒体 lloc 标识；评论整个上传批次时传 `undefined`。
    * @param content - 评论内容。
+   * @param batchId - 上传批次 ID，仅评论整个批次时使用；与 `lloc` 至少提供一项。
    * @returns 无返回值。
    */
   doGroupAlbumComment(
     groupId: number,
     albumId: string,
-    lloc: string,
+    lloc: string | undefined,
     content: string,
+    batchId?: string,
   ): Promise<Result<void>> {
     return this.invoke('do_group_album_comment', {
       group_id: groupId,
       album_id: albumId,
       lloc,
       content,
+      batch_id: batchId,
     })
   }
 

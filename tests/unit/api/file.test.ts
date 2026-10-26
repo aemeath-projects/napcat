@@ -102,6 +102,17 @@ describe('文件 API', () => {
     expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('delete_group_file', {
       group_id: 1001,
       file_id: 'file_abc',
+      bus_id: undefined,
+    })
+  })
+  it('deleteGroupFile 支持传入文件业务 ID', async () => {
+    const client = mockClient()
+    const api = new FileApi(client)
+    await api.deleteGroupFile(1001, 'file_abc', 102)
+    expect(client.call as ReturnType<typeof vi.fn>).toHaveBeenCalledWith('delete_group_file', {
+      group_id: 1001,
+      file_id: 'file_abc',
+      bus_id: 102,
     })
   })
   it('getGroupFileSystemInfo 获取群文件系统信息', async () => {
