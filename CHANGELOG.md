@@ -2,6 +2,18 @@
 
 所有版本变更记录
 
+## [1.5.0](https://github.com/aemeath-projects/napcat/compare/v1.4.1...v1.5.0) (2026-10-26)
+
+### 新功能
+
+* 兼容 NapCat 4.18.41 ([dcb2cac](https://github.com/aemeath-projects/napcat/commit/dcb2cacc9b7c49008f9e97a8afdaecc9023d60db))
+
+### 文档
+
+* **readme:** 补充 NapCat 版本兼容性对照表 ([dc4dc56](https://github.com/aemeath-projects/napcat/commit/dc4dc56f5ece8e66c6ae5f2b01314f8654e2a517))
+* **readme:** 精简兼容性表格表头 ([4eef9c9](https://github.com/aemeath-projects/napcat/commit/4eef9c921b1c40edba5d75acaff54588d31b86c4))
+* **readme:** 统一 Markdown 表格对齐格式 ([62aef74](https://github.com/aemeath-projects/napcat/commit/62aef74c315e281e21ece0155c0e34e38bebd1d5))
+
 ## [1.4.1](https://github.com/aemeath-projects/napcat/compare/v1.4.0...v1.4.1) (2026-10-19)
 
 ## [1.4.0](https://github.com/aemeath-projects/napcat/compare/v1.3.1...v1.4.0) (2026-10-10)
