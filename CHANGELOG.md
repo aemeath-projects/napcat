@@ -2,6 +2,16 @@
 
 所有版本变更记录
 
+## [2.0.0](https://github.com/aemeath-projects/napcat/compare/v1.5.0...v2.0.0) (2026-11-05)
+
+### ⚠ BREAKING CHANGES
+
+* sendQzoneMsg 与 deleteQzoneMsg 已从 ExtensionApi 迁至 QzoneApi。
+
+### 新功能
+
+* 拆分 QQ 空间 API 至 QzoneApi 并兼容 NapCat 4.18.42 ([0bde319](https://github.com/aemeath-projects/napcat/commit/0bde3193a2c598a8392086a4de3f47b36ca3951e))
+
 ## [1.5.0](https://github.com/aemeath-projects/napcat/compare/v1.4.1...v1.5.0) (2026-10-26)
 
 ### 新功能
