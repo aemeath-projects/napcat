@@ -3,7 +3,7 @@
 NapCat / OneBot 11 TypeScript SDK. 提供对 NapCat 的完整 TypeScript 封装，支持四种连接方式，支持 tree-shaking
 
 ![NPM Version](https://img.shields.io/npm/v/%40aemeath-projects%2Fnapcat?style=for-the-badge)
-![NapCat Version](https://img.shields.io/badge/napcat-4.18.41-pink?style=for-the-badge)
+![NapCat Version](https://img.shields.io/badge/napcat-4.18.42-pink?style=for-the-badge)
 ![CI Status](https://img.shields.io/github/actions/workflow/status/aemeath-projects/napcat/publish.yml?style=for-the-badge)
 ![Codecov](https://img.shields.io/codecov/c/github/aemeath-projects/napcat?style=for-the-badge)
 ![License](https://img.shields.io/github/license/aemeath-projects/napcat?style=for-the-badge)
@@ -37,14 +37,16 @@ pnpm add @aemeath-projects/napcat
 | `v1.4.0` | `4.18.37`           | `4.18.30` – `4.18.41` |
 | `v1.4.1` | `4.18.38`           | `4.18.30` – `4.18.41` |
 | `v1.5.0` | `4.18.41`           | `4.18.30` – `4.18.41` |
+| `v2.0.0` | `4.18.42`           | `4.18.42`             |
 
 - 范围表示该 release 调用的全部 action 在对应 NapCat 版本中均存在，不代表参数、返回值或实际行为完全一致。
 - 发布时对齐与端点下界可能不同，例如 `v1.1.0` 标注 `4.18.6`，但其 168 个 action 在 `4.18.5` 已齐全。
 
 **如何选择**
 
-- 新项目：`v1.5.0` + NapCat `4.18.41`；需要整批相册评论或 `deleteGroupFile` 业务 ID 时必须使用 `4.18.41`。
-- NapCat `4.18.30` – `4.18.40`：`v1.5.0` 的端点齐全，但 `4.18.41` 新增的可选参数会被忽略；`4.18.41` 以下官方不保留旧版契约兼容，生产环境建议使用 `4.18.41`。
+- 新项目：`v2.0.0` + NapCat `4.18.42`；需要 QQ 空间动态、评论或空友爱看接口时必须使用 `4.18.42`。
+- NapCat `4.18.41`：`v2.0.0` 可运行，但 4.18.42 新增的 26 个 QQ 空间 action 不存在；仅使用其余端点时两者等价。
+- NapCat `4.18.30` – `4.18.41`：`v1.5.0` 的端点齐全，但 `4.18.41` 新增的可选参数会被忽略；`4.18.41` 以下官方不保留旧版契约兼容，生产环境建议使用 `4.18.41` 或更高版本。
 - NapCat `4.18.5` – `4.18.13`：使用 `v1.3.1`，该代 168 个 action 完全相同。
 - NapCat `4.12.0` – `4.18.4`：只有 `v1.0.0` 的 118 个 action 全部存在；需要 4.18.5 新增端点时请升级 NapCat。
 - 早于 `4.12.0`：未核对。
@@ -61,11 +63,12 @@ pnpm add @aemeath-projects/napcat
 | `4.18.36`   | `create_flash_task` 新增可选参数 `validitySeconds`。                                                                                                                                  |
 | `4.18.37`   | `v1.4.0` / `v1.4.1` 的官方契约基线；SDK 类型标注群公告 `sendToNewMember` / `pinned` 为 4.18.37+。                                                                                     |
 | `4.18.38`   | `v1.4.1` 的目标版本；与 4.18.37 相比未发现路径变化。                                                                                                                                  |
-| `4.18.41`   | 当前最新快照、`v1.5.0` 的目标版本。`do_group_album_comment` 的 `lloc` 改为可选并新增 `batch_id`（二者至少提供一项）；`delete_group_file` 新增可选 `bus_id` / `busid`。               |
+| `4.18.41`   | `v1.5.0` 的目标版本。`do_group_album_comment` 的 `lloc` 改为可选并新增 `batch_id`（二者至少提供一项）；`delete_group_file` 新增可选 `bus_id` / `busid`。                              |
+| `4.18.42`   | 当前最新快照、`v2.0.0` 的目标版本。新增 26 个 QQ 空间端点（好友动态 12 个、空友爱看 14 个）；`send_qzone_msg` 响应新增 `time`。`feed_ref` / `feed` / `comment` / `reply` 为不透明对象，必须原样回传。 |
 
 **判定依据**
 
-基于每个 release tag 的 `src/api/*.ts` 中 `invoke()` 的 action 集合，与 NapCatDocs 的 95 个 OpenAPI 快照（`4.12.0` – `4.18.41`）比对。该结果为静态分析，不等同于逐版本运行验证；事件推送、返回值与权限行为未覆盖。
+基于每个 release tag 的 `src/api/*.ts` 中 `invoke()` 的 action 集合，与 NapCatDocs 的 96 个 OpenAPI 快照（`4.12.0` – `4.18.42`）比对。该结果为静态分析，不等同于逐版本运行验证；事件推送、返回值与权限行为未覆盖。
 
 ## 快速开始
 
@@ -122,6 +125,7 @@ const friend = new FriendApi(client)  // 好友操作
 const file = new FileApi(client)      // 文件上传/下载
 const system = new SystemApi(client)  // 系统信息
 const ext = new ExtensionApi(client)  // NapCat 扩展
+const qzone = new QzoneApi(client)    // QQ 空间（4.18.42+）
 ```
 
 所有 API 方法返回 `Result<T>` 类型：

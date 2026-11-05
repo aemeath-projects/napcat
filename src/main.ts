@@ -28,6 +28,7 @@ export { FriendApi } from './api'
 export { FileApi } from './api'
 export { SystemApi } from './api'
 export { ExtensionApi } from './api'
+export { QzoneApi } from './api'
 
 // 工具函数
 export { seg, extractPlaintext } from './utils'

@@ -19,6 +19,7 @@ export default defineConfig({
     'src/api/friend.ts',
     'src/api/group.ts',
     'src/api/message.ts',
+    'src/api/qzone.ts',
     'src/api/system.ts',
     'src/types/index.ts',
     'src/utils/index.ts',
