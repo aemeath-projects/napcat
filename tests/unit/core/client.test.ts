@@ -1,22 +1,26 @@
 import { describe, it, expect, vi } from 'vitest'
 
 import { NapCatClient } from '../../../src/core'
+import { TypedEventEmitter } from '../../../src/core/emitter'
 import type { Transport } from '../../../src/transport'
 import type { TransportEventMap } from '../../../src/types'
 
 function createMockTransport(overrides: Partial<Transport> = {}): Transport {
-  return {
-    state: 'disconnected',
-    connect: vi.fn().mockResolvedValue(undefined),
-    disconnect: vi.fn().mockResolvedValue(undefined),
-    call: vi.fn().mockResolvedValue({ status: 'ok', retcode: 0, data: null }),
-    on: vi.fn(),
-    once: vi.fn(),
-    off: vi.fn(),
-    emit: vi.fn(),
-    removeAllListeners: vi.fn(),
-    ...overrides,
-  } as Transport & TransportEventMap
+  return Object.assign(
+    new TypedEventEmitter<TransportEventMap>(),
+    {
+      state: 'disconnected',
+      connect: vi.fn().mockResolvedValue(undefined),
+      disconnect: vi.fn().mockResolvedValue(undefined),
+      call: vi.fn().mockResolvedValue({ status: 'ok', retcode: 0, data: null }),
+      on: vi.fn(),
+      once: vi.fn(),
+      off: vi.fn(),
+      emit: vi.fn(),
+      removeAllListeners: vi.fn(),
+    },
+    overrides,
+  )
 }
 
 describe('NapCatClient 客户端', () => {
